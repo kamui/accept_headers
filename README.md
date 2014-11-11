@@ -1,6 +1,9 @@
+[![Build Status](https://travis-ci.org/kamui/accept_headers.png)](https://travis-ci.org/kamui/accept_headers)
+
 # AcceptHeaders
 
-TODO: Write a gem description
+**AcceptHeaders** is a ruby library that aids in the parsing and sorting of
+http accept headers.
 
 ## Installation
 
