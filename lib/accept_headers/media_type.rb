@@ -73,7 +73,8 @@ module AcceptHeaders
     end
 
     def self.parse(accept)
-      media_types = accept.strip.split(',')
+      accept.sub!(/\AAccept:\s*/, '')
+      media_types = accept.split(',')
       return [MediaType.new] if media_types.empty?
       media_types.map do |entry|
         parts = entry.split(';')
