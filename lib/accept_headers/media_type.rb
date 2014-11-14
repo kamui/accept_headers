@@ -84,11 +84,8 @@ module AcceptHeaders
         media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
         raise ParseError.new("Unable to parse type and subtype") unless media_range
         media_type = MediaType.new(media_range[:type], media_range[:subtype])
+        media_type.q = parse_q(accept_params)
         params = parse_params(accept_params)
-        if params.key?'q'
-          media_type.q = params['q']
-          params.delete('q')
-        end
         media_type.params = params
         media_types << media_type
       end
@@ -98,12 +95,13 @@ module AcceptHeaders
     private
 
     def self.parse_params(params_string)
-      return {} if !params_string || params_string.empty?
       params = {}
+      return params if !params_string || params_string.empty?
       params_string.split(';').each do |part|
         param = PARAM_PATTERN.match(part)
         params[param[:attribute]] = param[:value] if param
       end
+      params.delete('q')
       params
     end
   end

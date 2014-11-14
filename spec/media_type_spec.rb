@@ -157,12 +157,10 @@ module AcceptHeaders
         ]
       end
 
-      it "raises InvalidQError when q can't be convered to float" do
-        e = -> do
-          subject.parse("text/plain;q=x")
-        end.must_raise MediaType::InvalidQError
-
-        e.message.must_equal 'invalid value for Float(): "x"'
+      it "has a q value of 0.001 when parsed q is invalid" do
+        subject.parse("text/plain;q=x").must_equal [
+          MediaType.new('text', 'plain', q: 0.001)
+        ]
       end
 
       it "raises ParseError when media type contains more than 1 slash" do

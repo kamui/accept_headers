@@ -8,6 +8,10 @@ module AcceptHeaders
 
     attr_reader :q
 
+    def self.included(base)
+      base.extend ClassMethods
+    end
+
     def q=(value)
       begin
         q_float = Float(value)
@@ -21,6 +25,25 @@ module AcceptHeaders
         raise InvalidPrecisionError.new("q must be at most 3 decimal places")
       end
       @q = q_float
+    end
+
+    module ClassMethods
+      Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
+
+      private
+      def parse_q(header)
+        q = 1
+        return q unless header
+        q_match = Q_PATTERN.match(header)
+        if q_match && q_match[:exists]
+          if q_match[:q]
+            q = q_match[:q]
+          else
+            q = 0.001
+          end
+        end
+        q
+      end
     end
   end
 end
