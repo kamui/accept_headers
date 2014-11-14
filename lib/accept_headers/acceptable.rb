@@ -4,6 +4,7 @@ module AcceptHeaders
     class OutOfRangeError < Error; end
     class InvalidPrecisionError < Error; end
     class InvalidQError < Error; end
+    class ParseError < Error; end
 
     attr_reader :q
 

@@ -5,8 +5,6 @@ module AcceptHeaders
     include Comparable
     include Acceptable
 
-    class InvalidTypeSubtypeError < Error; end
-
     attr_reader :type, :subtype, :params
 
     def initialize(type = '*', subtype = '*', q: 1.0, params: {})
@@ -72,31 +70,41 @@ module AcceptHeaders
       string
     end
 
-    def self.parse(accept)
+    MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
+    PARAM_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
+
+    def self.parse(original_accept)
+      accept = original_accept.dup
       accept.sub!(/\AAccept:\s*/, '')
-      media_types = accept.split(',')
-      return [MediaType.new] if media_types.empty?
-      media_types.map do |entry|
-        parts = entry.split(';')
-        type_subtype = parts.shift.split('/')
-        media_type = MediaType.new(type_subtype[0], type_subtype[1])
-        if type_subtype.size > 2
-          raise InvalidTypeSubtypeError.new("Unable to parse type and subtype")
-        end
-        params = {}
-        parts.each do |p|
-          key_value = p.split('=', 2)
-          next if key_value.size != 2
-          key, value = key_value
-          if key.strip == 'q'
-            media_type.q = value
-            next
-          end
-          params[key] = value
+      accept.strip!
+      return [MediaType.new] if accept.empty?
+      media_types = []
+      accept.split(',').each do |entry|
+        accept_media_range, accept_params = entry.split(';', 2)
+        media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
+        raise ParseError.new("Unable to parse type and subtype") unless media_range
+        media_type = MediaType.new(media_range[:type], media_range[:subtype])
+        params = parse_params(accept_params)
+        if params['q']
+          media_type.q = params['q']
+          params.delete('q')
         end
         media_type.params = params
-        media_type
-      end.sort! { |x,y| y <=> x }
+        media_types << media_type
+      end
+      media_types.sort! { |x,y| y <=> x }
+    end
+
+    private
+
+    def self.parse_params(params_string)
+      return {} if !params_string || params_string.empty?
+      params = {}
+      params_string.split(';').each do |part|
+        param = PARAM_PATTERN.match(part)
+        params[param[:attribute]] = param[:value] if param
+      end
+      params
     end
   end
 end

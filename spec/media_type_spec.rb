@@ -165,10 +165,10 @@ module AcceptHeaders
         e.message.must_equal 'invalid value for Float(): "x"'
       end
 
-      it "raises InvalidTypeSubtypeError when media type contains more than 1 slash" do
+      it "raises ParseError when media type contains more than 1 slash" do
         e = -> do
           subject.parse("text/plain/omg;q=0.9")
-        end.must_raise MediaType::InvalidTypeSubtypeError
+        end.must_raise MediaType::ParseError
 
         e.message.must_equal "Unable to parse type and subtype"
       end
