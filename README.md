@@ -4,8 +4,7 @@
 
 # AcceptHeaders
 
-**AcceptHeaders** is a ruby library that aids in the parsing and sorting of
-http accept headers.
+**AcceptHeaders** is a ruby library that parses and sorts http accept headers.
 
 Some features of the library are:
 
