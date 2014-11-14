@@ -7,6 +7,22 @@
 **AcceptHeaders** is a ruby library that aids in the parsing and sorting of
 http accept headers.
 
+Some features of the library are:
+
+  * Strict adherence to [RFC 2616][rfc], specifically [section 14][rfc-sec14]
+  * Full support for the [Accept][rfc-sec14-1], [Accept-Charset][rfc-sec14-2],
+    [Accept-Encoding][rfc-sec14-3], and [Accept-Language][rfc-sec14-4] HTTP
+    request headers
+  * A comprehensive [spec suite][spec] that covers many edge cases
+
+[rfc]: http://www.w3.org/Protocols/rfc2616/rfc2616.html
+[rfc-sec14]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+[rfc-sec14-1]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
+[rfc-sec14-2]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.2
+[rfc-sec14-3]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
+[rfc-sec14-4]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
+[spec]: http://github.com/kamui/accept_headers/tree/master/spec/
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -25,7 +41,23 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+`AcceptHeaders` can parse the Accept Header and return an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
+
+```ruby
+AcceptHeaders::MediaType.parse("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
+```
+
+Will generate this equivalent array:
+
+```ruby
+[
+  MediaType.new('text', 'html', params: { 'level' => '1' }),
+  MediaType.new('text', 'html', q: 0.7),
+  MediaType.new('*', '*', q: 0.5),
+  MediaType.new('text', 'html', q: 0.4, params: { 'level' => '2' }),
+  MediaType.new('text', '*', q: 0.3)
+]
+```
 
 ## Contributing
 
