@@ -59,6 +59,56 @@ Will generate this equivalent array:
 ]
 ```
 
+Parsing `Charset`:
+
+```ruby
+AcceptHeaders::Charset.parse("us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macintosh")
+```
+
+generates:
+
+```ruby
+[
+  Charset.new('iso-8859-1'),
+  Charset.new('macintosh'),
+  Charset.new('utf-8', q: 0.8),
+  Charset.new('us-ascii', q: 0.5)
+]
+```
+
+Parsing `Encoding`:
+
+```ruby
+AcceptHeaders::Encoding.parse("deflate; q=0.5, gzip, compress; q=0.8, identity")
+```
+
+generates:
+
+```ruby
+[
+  Encoding.new('gzip'),
+  Encoding.new('identity'),
+  Encoding.new('compress', q: 0.8),
+  Encoding.new('deflate', q: 0.5)
+]
+```
+
+Parsing `Language`:
+
+```ruby
+AcceptHeaders::Language.parse("en-*, en-us, *;q=0.8")
+```
+
+generates:
+
+```ruby
+[
+  Language.new('en', 'us'),
+  Language.new('en', '*'),
+  Language.new('*', '*', q: 0.8)
+]
+```
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/accept_headers/fork )
