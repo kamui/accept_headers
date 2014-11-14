@@ -6,8 +6,8 @@ gemspec
 group :test do
   gem "ruby_gntp"
   gem "minitest-focus"
-  gem "codeclimate-test-reporter"
-  gem "simplecov"
+  gem "codeclimate-test-reporter", require: false
+  gem "simplecov", require: false
 end
 
 group :development, :test do
