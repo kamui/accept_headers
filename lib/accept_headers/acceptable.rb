@@ -8,6 +8,8 @@ module AcceptHeaders
 
     attr_reader :q
 
+    TOKEN_PATTERN = /^\s*(?<token>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*$/
+
     def self.included(base)
       base.extend ClassMethods
     end

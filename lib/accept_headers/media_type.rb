@@ -73,21 +73,27 @@ module AcceptHeaders
     MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
     PARAM_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
 
-    def self.parse(original_accept)
-      accept = original_accept.dup
-      accept.sub!(/\AAccept:\s*/, '')
-      accept.strip!
-      return [MediaType.new] if accept.empty?
+    def self.parse(original_header)
+      header = original_header.dup
+      header.sub!(/\AAccept:\s*/, '')
+      header.strip!
+      return [MediaType.new] if header.empty?
       media_types = []
-      accept.split(',').each do |entry|
+      header.split(',').each do |entry|
         accept_media_range, accept_params = entry.split(';', 2)
+        next if accept_media_range.nil?
         media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
-        raise ParseError.new("Unable to parse type and subtype") unless media_range
-        media_type = MediaType.new(media_range[:type], media_range[:subtype])
-        media_type.q = parse_q(accept_params)
-        params = parse_params(accept_params)
-        media_type.params = params
-        media_types << media_type
+        next if media_range.nil?
+        begin
+          media_types << MediaType.new(
+            media_range[:type],
+            media_range[:subtype],
+            q: parse_q(accept_params),
+            params: parse_params(accept_params)
+          )
+        rescue Error
+          next
+        end
       end
       media_types.sort! { |x,y| y <=> x }
     end

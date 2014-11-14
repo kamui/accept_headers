@@ -99,8 +99,8 @@ module AcceptHeaders
     describe "parsing an accept header" do
       it "returns a sorted array of media types" do
         subject.parse("audio/*; q=0.2, audio/basic").must_equal [
-          MediaType.new("audio", "basic"),
-          MediaType.new("audio", '*', q: 0.2)
+          MediaType.new('audio', 'basic'),
+          MediaType.new('audio', '*', q: 0.2)
         ]
         subject.parse("text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c").must_equal [
           MediaType.new('text', 'html'),
@@ -163,12 +163,10 @@ module AcceptHeaders
         ]
       end
 
-      it "raises ParseError when media type contains more than 1 slash" do
-        e = -> do
-          subject.parse("text/plain/omg;q=0.9")
-        end.must_raise MediaType::ParseError
-
-        e.message.must_equal "Unable to parse type and subtype"
+      it "skips invalid media types" do
+        subject.parse("text/html, text/plain/omg;q=0.9").must_equal [
+          MediaType.new('text', 'html', q: 1)
+        ]
       end
     end
   end
