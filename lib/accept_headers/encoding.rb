@@ -43,8 +43,7 @@ module AcceptHeaders
         if parts.size > 2
           raise InvalidEncodingError.new("Unable to parse encoding")
         elsif parts.size == 2
-          qkv = parts[1].split('=', 2)
-          encoding.q = qkv[1]
+          encoding.q = parse_q(parts[1])
         end
         encoding
       end.sort! { |x,y| y <=> x }

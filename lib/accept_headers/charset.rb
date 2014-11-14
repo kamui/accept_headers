@@ -44,8 +44,7 @@ module AcceptHeaders
         if parts.size > 2
           raise InvalidCharsetError.new("Unable to parse charset")
         elsif parts.size == 2
-          qkv = parts[1].split('=', 2)
-          charset.q = qkv[1]
+          charset.q = parse_q(parts[1])
         end
         charset
       end.sort! { |x,y| y <=> x }

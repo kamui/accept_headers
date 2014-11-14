@@ -110,12 +110,10 @@ module AcceptHeaders
         ]
       end
 
-      it "raises InvalidQError when q can't be convered to float" do
-        e = -> do
-          subject.parse("gzip;q=x")
-        end.must_raise Encoding::InvalidQError
-
-        e.message.must_equal 'invalid value for Float(): "x"'
+      it "has a q value of 0.001 when parsed q is invalid" do
+        subject.parse("gzip;q=x").must_equal [
+          Encoding.new('gzip', q: 0.001)
+        ]
       end
 
       it "raises InvalidEncodingError when encoding string contains more than 1 semi colon" do

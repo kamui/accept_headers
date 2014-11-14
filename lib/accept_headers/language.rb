@@ -66,8 +66,7 @@ module AcceptHeaders
         elsif parts.size > 2
           raise InvalidLanguageError.new("Unable to parse language tag")
         elsif parts.size == 2
-          qkv = parts[1].split('=', 2)
-          encoding.q = qkv[1]
+          language.q = parse_q(parts[1])
         end
         language
       end.sort! { |x,y| y <=> x }

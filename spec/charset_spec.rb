@@ -110,12 +110,10 @@ module AcceptHeaders
         ]
       end
 
-      it "raises InvalidQError when q can't be convered to float" do
-        e = -> do
-          subject.parse("iso-8859-1;q=x")
-        end.must_raise Charset::InvalidQError
-
-        e.message.must_equal 'invalid value for Float(): "x"'
+      it "has a q value of 0.001 when parsed q is invalid" do
+        subject.parse("iso-8859-1;q=x").must_equal [
+          Charset.new('iso-8859-1', q: 0.001)
+        ]
       end
 
       it "raises InvalidCharsetError when charset string contains more than 1 semi colon" do
