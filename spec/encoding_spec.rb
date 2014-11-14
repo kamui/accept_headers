@@ -116,12 +116,10 @@ module AcceptHeaders
         ]
       end
 
-      it "raises InvalidEncodingError when encoding string contains more than 1 semi colon" do
-        e = -> do
-          subject.parse("gzip;q=0.9;level=1")
-        end.must_raise Encoding::InvalidEncodingError
-
-        e.message.must_equal "Unable to parse encoding"
+      it "skips invalid encodings" do
+        subject.parse("gzip, @blah").must_equal [
+          Encoding.new('gzip', q: 1.0)
+        ]
       end
     end
   end

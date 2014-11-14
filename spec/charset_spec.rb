@@ -116,12 +116,10 @@ module AcceptHeaders
         ]
       end
 
-      it "raises InvalidCharsetError when charset string contains more than 1 semi colon" do
-        e = -> do
-          subject.parse("iso-8859-1;q=0.9;level=1")
-        end.must_raise Charset::InvalidCharsetError
-
-        e.message.must_equal "Unable to parse charset"
+      it "skips invalid character sets" do
+        subject.parse("iso-8859-1, @unicode-1-1").must_equal [
+          Charset.new('iso-8859-1', q: 1)
+        ]
       end
     end
   end
