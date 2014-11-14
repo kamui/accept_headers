@@ -145,5 +145,17 @@ module AcceptHeaders
         ]
       end
     end
+
+    describe "negotiate supported languages" do
+      it "returns a best matching language" do
+        available = [
+          Language.new('en', 'us'),
+          Language.new('en', '*'),
+          Language.new('*', '*', q: 0.8)
+        ]
+        match = Language.new('en', 'us')
+        subject.negotiate(available, [match]).must_equal match
+      end
+    end
   end
 end

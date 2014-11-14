@@ -122,5 +122,18 @@ module AcceptHeaders
         ]
       end
     end
+
+    describe "negotiate supported encodings" do
+      it "returns a best matching encoding" do
+        available = [
+          Encoding.new('gzip'),
+          Encoding.new('identity'),
+          Encoding.new('compress', q: 0.8),
+          Encoding.new('deflate', q: 0.5)
+        ]
+        match = Encoding.new('identity')
+        subject.negotiate(available, [match]).must_equal match
+      end
+    end
   end
 end

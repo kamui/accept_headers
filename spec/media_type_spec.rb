@@ -169,5 +169,18 @@ module AcceptHeaders
         ]
       end
     end
+
+    describe "negotiate supported media types" do
+      it "returns a best matching media type" do
+        available = [
+          MediaType.new('text', 'html', params: { 'level' => '1' }),
+          MediaType.new('text', 'html'),
+          MediaType.new('text', '*'),
+          MediaType.new('*', '*')
+        ]
+        match = MediaType.new('text', 'html')
+        subject.negotiate(available, [match]).must_equal MediaType.new('text', 'html', params: { 'level' => '1' })
+      end
+    end
   end
 end

@@ -34,6 +34,16 @@ module AcceptHeaders
       "#{encoding};q=#{qvalue}"
     end
 
+    def match(other)
+      if encoding == other.encoding
+        true
+      elsif other.encoding == '*'
+        true
+      else
+        false
+      end
+    end
+
     def self.parse(original_header)
       header = original_header.dup
       header.sub!(/\AAccept-Encoding:\s*/, '')

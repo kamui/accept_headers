@@ -42,7 +42,9 @@ Or install it yourself as:
 
 ## Usage
 
-`AcceptHeaders` can parse the Accept Header and return an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
+### Accept
+
+`AcceptHeaders` can parse the `Accept` header and return an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
 
 ```ruby
 AcceptHeaders::MediaType.parse("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
@@ -52,67 +54,134 @@ Will generate this equivalent array:
 
 ```ruby
 [
-  MediaType.new('text', 'html', params: { 'level' => '1' }),
-  MediaType.new('text', 'html', q: 0.7),
-  MediaType.new('*', '*', q: 0.5),
-  MediaType.new('text', 'html', q: 0.4, params: { 'level' => '2' }),
-  MediaType.new('text', '*', q: 0.3)
+  AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' }),
+  AcceptHeaders::MediaType.new('text', 'html', q: 0.7),
+  AcceptHeaders::MediaType.new('*', '*', q: 0.5),
+  AcceptHeaders::MediaType.new('text', 'html', q: 0.4, params: { 'level' => '2' }),
+  AcceptHeaders::MediaType.new('text', '*', q: 0.3)
 ]
 ```
+
+`#negotiate` takes an array of `MediaType`s available (from the browser) and an array of `MediaTypes`s supported (by your API or route/controller) and returns the best match. This will first check the available list for any matching media types with a `q` of 0 and return `nil` if there is a match. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match account for wildcards.
+
+```ruby
+available = [
+  AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' }),
+  AcceptHeaders::MediaType.new('text', 'html'),
+  AcceptHeaders::MediaType.new('text', '*'),
+  AcceptHeaders::MediaType.new('*', '*')
+]
+match = AcceptHeaders::MediaType.new('text', 'html')
+AcceptHeaders::MediaType.negotiate(available, [match])
+
+# Returns:
+
+AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' })
+```
+
+### Accept-Charset
 
 Parsing `Charset`:
 
 ```ruby
 AcceptHeaders::Charset.parse("us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macintosh")
-```
 
-generates:
+# Generates:
 
-```ruby
 [
-  Charset.new('iso-8859-1'),
-  Charset.new('macintosh'),
-  Charset.new('utf-8', q: 0.8),
-  Charset.new('us-ascii', q: 0.5)
+  AcceptHeaders::Charset.new('iso-8859-1'),
+  AcceptHeaders::Charset.new('macintosh'),
+  AcceptHeaders::Charset.new('utf-8', q: 0.8),
+  AcceptHeaders::Charset.new('us-ascii', q: 0.5)
 ]
 ```
+
+`#negotiate`:
+
+```ruby
+available = [
+  AcceptHeaders::Charset.new('iso-8859-1'),
+  AcceptHeaders::Charset.new('macintosh'),
+  AcceptHeaders::Charset.new('utf-8', q: 0.8),
+  AcceptHeaders::Charset.new('us-ascii', q: 0.5)
+]
+match = Charset.new('iso-8859-1')
+AcceptHeaders::Charset.negotiate(available, [match])
+
+# Returns
+
+AcceptHeaders::Charset.new('iso-8859-1')
+```
+
+### Accept-Encoding
 
 Parsing `Encoding`:
 
 ```ruby
 AcceptHeaders::Encoding.parse("deflate; q=0.5, gzip, compress; q=0.8, identity")
-```
 
-generates:
+# Generates:
 
-```ruby
 [
-  Encoding.new('gzip'),
-  Encoding.new('identity'),
-  Encoding.new('compress', q: 0.8),
-  Encoding.new('deflate', q: 0.5)
+  AcceptHeaders::Encoding.new('gzip'),
+  AcceptHeaders::Encoding.new('identity'),
+  AcceptHeaders::Encoding.new('compress', q: 0.8),
+  AcceptHeaders::Encoding.new('deflate', q: 0.5)
 ]
 ```
+
+`#negotiate`:
+
+```ruby
+available = [
+  AcceptHeaders::Encoding.new('gzip'),
+  AcceptHeaders::Encoding.new('identity'),
+  AcceptHeaders::Encoding.new('compress', q: 0.8),
+  AcceptHeaders::Encoding.new('deflate', q: 0.5)
+]
+match = Encoding.new('identity')
+AcceptHeaders::Encoding.negotiate(available, [match])
+
+# Returns:
+AcceptHeaders::Encoding.new('identity')
+```
+
+### Accept-Language
 
 Parsing `Language`:
 
 ```ruby
 AcceptHeaders::Language.parse("en-*, en-us, *;q=0.8")
-```
 
-generates:
+# Generates:
 
-```ruby
 [
-  Language.new('en', 'us'),
-  Language.new('en', '*'),
-  Language.new('*', '*', q: 0.8)
+  AcceptHeaders::Language.new('en', 'us'),
+  AcceptHeaders::Language.new('en', '*'),
+  AcceptHeaders::Language.new('*', '*', q: 0.8)
 ]
 ```
+
+`#negotiate`:
+
+```ruby
+available = [
+  AcceptHeaders::Language.new('en', 'us'),
+  AcceptHeaders::Language.new('en', '*'),
+  AcceptHeaders::Language.new('*', '*', q: 0.8)
+]
+match = AcceptHeaders::Language.new('en', 'us')
+AcceptHeaders::Language.negotiate(available, [match])
+
+# Returns:
+
+AcceptHeaders::Language.new('en', 'us')
+```
+
 ## Todo
 
 * Write rack middleware
-* Add methods to return a best match depending on a list of supported inputs
+* More edge cast tests
 
 ## Contributing
 

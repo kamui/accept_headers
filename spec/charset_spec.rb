@@ -122,5 +122,18 @@ module AcceptHeaders
         ]
       end
     end
+
+    describe "negotiate supported charsets" do
+      it "returns a best matching charset" do
+        available = [
+          Charset.new('iso-8859-1'),
+          Charset.new('macintosh'),
+          Charset.new('utf-8', q: 0.8),
+          Charset.new('us-ascii', q: 0.5)
+        ]
+        match = Charset.new('iso-8859-1')
+        subject.negotiate(available, [match]).must_equal match
+      end
+    end
   end
 end

@@ -54,6 +54,18 @@ module AcceptHeaders
       "#{primary_tag}-#{subtag};q=#{qvalue}"
     end
 
+    def match(other)
+      if primary_tag == other.primary_tag && subtag == other.subtag
+        true
+      elsif primary_tag == other.primary_tag && subtag == '*'
+        true
+      elsif other.primary_tag == '*'
+        true
+      else
+        false
+      end
+    end
+
     LANGUAGE_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
 
     def self.parse(original_header)

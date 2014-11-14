@@ -70,6 +70,18 @@ module AcceptHeaders
       string
     end
 
+    def match(other)
+      if type == other.type && subtype == other.subtype
+        true
+      elsif type == other.type && subtype == '*'
+        true
+      elsif other.type == '*' && other.subtype == '*'
+        true
+      else
+        false
+      end
+    end
+
     MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
     PARAM_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
 
