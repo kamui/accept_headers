@@ -34,7 +34,7 @@ module AcceptHeaders
     end
 
     def subtag=(value)
-      @subtag = if value.nil? && primary_tag == '*'
+      @subtag = if value.nil?
         '*'
       else
         value.strip.downcase
@@ -51,25 +51,33 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
-      "#{primary_tag}/#{subtag};q=#{qvalue}"
+      "#{primary_tag}-#{subtag};q=#{qvalue}"
     end
 
-    def self.parse(accept)
-      languages = accept.strip.split(',')
-      return [Language.new] if languages.empty?
-      languages.map do |entry|
-        parts = entry.split(';')
-        language_tag = parts.shift.split('-')
-        language = Language.new(language_tag[0], language_tag[1])
-        if language_tag.size > 2
-          raise InvalidLanguageError.new("Unable to parse language tag")
-        elsif parts.size > 2
-          raise InvalidLanguageError.new("Unable to parse language tag")
-        elsif parts.size == 2
-          language.q = parse_q(parts[1])
+    LANGUAGE_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
+
+    def self.parse(original_header)
+      header = original_header.dup
+      header.sub!(/\AAccept-Language:\s*/, '')
+      header.strip!
+      return [Language.new] if header.empty?
+      languages = []
+      header.split(',').each do |entry|
+        language_arr = entry.split(';', 2)
+        next if language_arr[0].nil?
+        language_range = LANGUAGE_PATTERN.match(language_arr[0])
+        next if language_range.nil?
+        begin
+          languages << Language.new(
+            language_range[:primary_tag],
+            language_range[:subtag],
+            q: parse_q(language_arr[1])
+          )
+        rescue Error
+          next
         end
-        language
-      end.sort! { |x,y| y <=> x }
+      end
+      languages.sort! { |x,y| y <=> x }
     end
   end
 end
