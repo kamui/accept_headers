@@ -10,7 +10,7 @@ group :test do
   gem "simplecov"
 end
 
-group :development do
+group :development, :test do
   gem "pry"
   gem "awesome_print"
 end

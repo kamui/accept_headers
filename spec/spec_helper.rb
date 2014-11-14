@@ -1,5 +1,7 @@
 require "minitest/autorun"
 require "minitest/focus"
+require "awesome_print"
+require "pry"
 
 if defined?(CodeClimate)
   CodeClimate::TestReporter.configure do |config|
