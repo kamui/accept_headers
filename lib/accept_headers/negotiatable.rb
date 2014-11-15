@@ -30,6 +30,7 @@ module AcceptHeaders
           end
         end
       end
+      nil
     end
 
     private
