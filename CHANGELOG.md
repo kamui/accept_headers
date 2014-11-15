@@ -1,3 +1,8 @@
+## HEAD
+
+  * Fix subtype checking in `MediaType#match`.
+  * Return `nil` if no matches on `Negotiatable#negotiate`.
+
 ## 0.0.4 / November 15, 2014
 
   * Add MediaType#media_range which is the type/subtype as a string.
