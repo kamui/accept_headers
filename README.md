@@ -4,7 +4,7 @@
 
 # AcceptHeaders
 
-**AcceptHeaders** is a ruby library that parses and sorts http accept headers.
+**AcceptHeaders** is a ruby library that does content negotiation and parses and sorts http accept headers.
 
 Some features of the library are:
 
@@ -44,15 +44,15 @@ Or install it yourself as:
 
 ### Accept
 
-`AcceptHeaders` can parse the `Accept` header and return an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
+`AcceptHeaders::MediaType::Negotiator` is a class that is initialized with an `Accept` header string and will internally store an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
 
 ```ruby
-AcceptHeaders::MediaType.parse("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
-```
+media_types = AcceptHeaders::MediaType::Negotiator.new("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
 
-Will generate this equivalent array:
+media_types.list
 
-```ruby
+# Returns:
+
 [
   AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' }),
   AcceptHeaders::MediaType.new('text', 'html', q: 0.7),
@@ -62,17 +62,10 @@ Will generate this equivalent array:
 ]
 ```
 
-`#negotiate` takes an array of `MediaType`s available (from the browser) and an array of `MediaTypes`s supported (by your API or route/controller) and returns the best match. This will first check the available list for any matching media types with a `q` of 0 and return `nil` if there is a match. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match account for wildcards.
+`#negotiate` takes a string of media types supported (by your API or route/controller) and returns the best match as a `MediaType`. This will first check the available list for any matching media types with a `q` of 0 and return `nil` if there is a match. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match account for wildcards.
 
 ```ruby
-available = [
-  AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' }),
-  AcceptHeaders::MediaType.new('text', 'html'),
-  AcceptHeaders::MediaType.new('text', '*'),
-  AcceptHeaders::MediaType.new('*', '*')
-]
-match = AcceptHeaders::MediaType.new('text', 'html')
-AcceptHeaders::MediaType.negotiate(available, [match])
+media_type.negotiate('text/html')
 
 # Returns:
 
@@ -81,12 +74,14 @@ AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' })
 
 ### Accept-Charset
 
-Parsing `Charset`:
+`AcceptHeader::Charset::Negotiator`:
 
 ```ruby
-AcceptHeaders::Charset.parse("us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macintosh")
+charsets = AcceptHeaders::Charset::Negotiator.new("us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macintosh")
 
-# Generates:
+charsets.list
+
+# Returns:
 
 [
   AcceptHeaders::Charset.new('iso-8859-1'),
@@ -99,28 +94,23 @@ AcceptHeaders::Charset.parse("us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macinto
 `#negotiate`:
 
 ```ruby
-available = [
-  AcceptHeaders::Charset.new('iso-8859-1'),
-  AcceptHeaders::Charset.new('macintosh'),
-  AcceptHeaders::Charset.new('utf-8', q: 0.8),
-  AcceptHeaders::Charset.new('us-ascii', q: 0.5)
-]
-match = Charset.new('iso-8859-1')
-AcceptHeaders::Charset.negotiate(available, [match])
+charsets.negotiate('iso-8859-1')
 
-# Returns
+# Returns:
 
 AcceptHeaders::Charset.new('iso-8859-1')
 ```
 
 ### Accept-Encoding
 
-Parsing `Encoding`:
+`AcceptHeader::Charset::Encoding`:
 
 ```ruby
-AcceptHeaders::Encoding.parse("deflate; q=0.5, gzip, compress; q=0.8, identity")
+encodings = AcceptHeaders::Encoding::Negotiator.new("deflate; q=0.5, gzip, compress; q=0.8, identity")
 
-# Generates:
+encodings.list
+
+# Returns:
 
 [
   AcceptHeaders::Encoding.new('gzip'),
@@ -133,27 +123,23 @@ AcceptHeaders::Encoding.parse("deflate; q=0.5, gzip, compress; q=0.8, identity")
 `#negotiate`:
 
 ```ruby
-available = [
-  AcceptHeaders::Encoding.new('gzip'),
-  AcceptHeaders::Encoding.new('identity'),
-  AcceptHeaders::Encoding.new('compress', q: 0.8),
-  AcceptHeaders::Encoding.new('deflate', q: 0.5)
-]
-match = Encoding.new('identity')
-AcceptHeaders::Encoding.negotiate(available, [match])
+encodings.negotiate('identity')
 
 # Returns:
+
 AcceptHeaders::Encoding.new('identity')
 ```
 
 ### Accept-Language
 
-Parsing `Language`:
+`Accept::Language::Negotiator`:
 
 ```ruby
-AcceptHeaders::Language.parse("en-*, en-us, *;q=0.8")
+languages = AcceptHeaders::Language::Negotiator.new("en-*, en-us, *;q=0.8")
 
-# Generates:
+languages.list
+
+# Returns:
 
 [
   AcceptHeaders::Language.new('en', 'us'),
@@ -165,13 +151,7 @@ AcceptHeaders::Language.parse("en-*, en-us, *;q=0.8")
 `#negotiate`:
 
 ```ruby
-available = [
-  AcceptHeaders::Language.new('en', 'us'),
-  AcceptHeaders::Language.new('en', '*'),
-  AcceptHeaders::Language.new('*', '*', q: 0.8)
-]
-match = AcceptHeaders::Language.new('en', 'us')
-AcceptHeaders::Language.negotiate(available, [match])
+languages.negotiate('en-us')
 
 # Returns:
 
@@ -181,7 +161,7 @@ AcceptHeaders::Language.new('en', 'us')
 ## Todo
 
 * Write rack middleware
-* More edge cast tests
+* More edge case tests
 
 ## Contributing
 

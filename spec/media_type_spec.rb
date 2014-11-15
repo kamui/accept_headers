@@ -59,11 +59,11 @@ module AcceptHeaders
       subject.new('text', 'html', q: '1')
     end
 
-    it "raises an OutOfRangeError unless q value is between 0 and 1" do
+    it "raises an InvalidQError unless q value is between 0 and 1" do
       [-1.0, -0.1, 1.1].each do |q|
         e = -> do
           subject.new('text', 'html', q: q)
-        end.must_raise MediaType::OutOfRangeError
+        end.must_raise MediaType::InvalidQError
 
         e.message.must_equal "q must be between 0 and 1"
       end
@@ -72,10 +72,10 @@ module AcceptHeaders
       subject.new('text', 'html', q: 0)
     end
 
-    it "raises an InvalidPrecisionError if q has more than a precision of 3" do
+    it "raises an InvalidQError if q has more than a precision of 3" do
       e = -> do
         subject.new('text', 'html', q: 0.1234)
-      end.must_raise MediaType::InvalidPrecisionError
+      end.must_raise MediaType::InvalidQError
 
       e.message.must_equal "q must be at most 3 decimal places"
 
@@ -94,93 +94,6 @@ module AcceptHeaders
     it "convers to string" do
       s = subject.new('text', 'html', q: 0.9, params: { 'level' => '1' }).to_s
       s.must_equal "text/html;q=0.9;level=1"
-    end
-
-    describe "parsing an accept header" do
-      it "returns a sorted array of media types" do
-        subject.parse("audio/*; q=0.2, audio/basic").must_equal [
-          MediaType.new('audio', 'basic'),
-          MediaType.new('audio', '*', q: 0.2)
-        ]
-        subject.parse("text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c").must_equal [
-          MediaType.new('text', 'html'),
-          MediaType.new('text', 'x-c'),
-          MediaType.new('text', 'x-dvi', q: 0.8),
-          MediaType.new('text', 'plain', q: 0.5)
-        ]
-
-        subject.parse("text/*, text/html, text/html;level=1, */*").must_equal [
-          MediaType.new('text', 'html', params: { 'level' => '1' }),
-          MediaType.new('text', 'html'),
-          MediaType.new('text', '*'),
-          MediaType.new('*', '*')
-        ]
-
-        subject.parse("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5").must_equal [
-          MediaType.new('text', 'html', params: { 'level' => '1' }),
-          MediaType.new('text', 'html', q: 0.7),
-          MediaType.new('*', '*', q: 0.5),
-          MediaType.new('text', 'html', q: 0.4, params: { 'level' => '2' }),
-          MediaType.new('text', '*', q: 0.3)
-        ]
-      end
-
-      it "sets media type to */* when the accept header is empty" do
-        subject.parse('').must_equal [
-          MediaType.new('*', '*')
-        ]
-      end
-
-      it "sets media type to */* when the type is only *" do
-        subject.parse('*').must_equal [
-          MediaType.new('*', '*')
-        ]
-      end
-
-      it "defaults q to 1 if it's not explicitly specified" do
-        subject.parse("text/plain").must_equal [
-          MediaType.new('text', 'plain', q: 1.0)
-        ]
-      end
-
-      it "strips whitespace from between media types" do
-        subject.parse("\ttext/plain\r,\napplication/json\s").must_equal [
-          MediaType.new('text', 'plain'),
-          MediaType.new('application', 'json')
-        ]
-      end
-
-      it "strips whitespace around q and params" do
-        subject.parse("text/plain;\tq\r=\n1, application/json;q=0.8;\slevel\t\t=\r\n1\n").must_equal [
-          MediaType.new('text', 'plain'),
-          MediaType.new('application', 'json', q: 0.8, params: { "level" => "1" })
-        ]
-      end
-
-      it "has a q value of 0.001 when parsed q is invalid" do
-        subject.parse("text/plain;q=x").must_equal [
-          MediaType.new('text', 'plain', q: 0.001)
-        ]
-      end
-
-      it "skips invalid media types" do
-        subject.parse("text/html, text/plain/omg;q=0.9").must_equal [
-          MediaType.new('text', 'html', q: 1)
-        ]
-      end
-    end
-
-    describe "negotiate supported media types" do
-      it "returns a best matching media type" do
-        available = [
-          MediaType.new('text', 'html', params: { 'level' => '1' }),
-          MediaType.new('text', 'html'),
-          MediaType.new('text', '*'),
-          MediaType.new('*', '*')
-        ]
-        match = MediaType.new('text', 'html')
-        subject.negotiate(available, [match]).must_equal MediaType.new('text', 'html', params: { 'level' => '1' })
-      end
     end
   end
 end

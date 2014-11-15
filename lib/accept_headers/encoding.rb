@@ -5,8 +5,6 @@ module AcceptHeaders
     include Comparable
     include Acceptable
 
-    class InvalidEncodingError < Error; end
-
     attr_reader :encoding
 
     def initialize(encoding = '*', q: 1.0)
@@ -42,22 +40,6 @@ module AcceptHeaders
       else
         false
       end
-    end
-
-    def self.parse(original_header)
-      header = original_header.dup
-      header.sub!(/\AAccept-Encoding:\s*/, '')
-      header.strip!
-      return [Charset.new] if header.empty?
-      encodings = []
-      header.split(',').each do |entry|
-        encoding_arr = entry.split(';', 2)
-        next if encoding_arr[0].nil?
-        encoding = TOKEN_PATTERN.match(encoding_arr[0])
-        next if encoding.nil?
-        encodings << Encoding.new(encoding[:token], q: parse_q(encoding_arr[1]))
-      end
-      encodings.sort! { |x,y| y <=> x }
     end
   end
 end
