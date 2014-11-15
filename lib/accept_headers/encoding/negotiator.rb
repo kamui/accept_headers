@@ -11,7 +11,7 @@ module AcceptHeaders
         header = original_header.dup
         header.sub!(/\AAccept-Encoding:\s*/, '')
         header.strip!
-        return [Charset.new] if header.empty?
+        return [Encoding.new] if header.empty?
         encodings = []
         header.split(',').each do |entry|
           encoding_arr = entry.split(';', 2)
