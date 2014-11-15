@@ -1,53 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <title>Accept headers by kamui</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <title>Accept headers by kamui</title>
   </head>
-
   <body>
-    <div id="container">
-      <div class="inner">
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Accept headers</h1>
+        <p class="header">A ruby library that does content negotiation and parses and sorts http accept headers</p>
 
-        <header>
-          <h1>Accept headers</h1>
-          <h2>A ruby library that parses and sorts http accept headers.</h2>
-        </header>
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/kamui/accept_headers/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/kamui/accept_headers/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/kamui/accept_headers">View On GitHub</a></li>
+        </ul>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/kamui/accept_headers/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/kamui/accept_headers/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/kamui/accept_headers" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/kamui">kamui</a></p>
 
-        <hr>
 
-        <section id="main_content">
-          <p><a href="https://travis-ci.org/kamui/accept_headers"><img src="https://travis-ci.org/kamui/accept_headers.png" alt="Build Status"></a>
+      </header>
+      <section>
+        <p><a href="https://travis-ci.org/kamui/accept_headers"><img src="https://travis-ci.org/kamui/accept_headers.png" alt="Build Status"></a>
 <a href="https://codeclimate.com/github/kamui/accept_headers"><img src="https://codeclimate.com/github/kamui/accept_headers/badges/gpa.svg" alt="Code Climate"></a>
 <a href="https://codeclimate.com/github/kamui/accept_headers"><img src="https://codeclimate.com/github/kamui/accept_headers/badges/coverage.svg" alt="Test Coverage"></a></p>
 
 <h1>
 <a id="acceptheaders" class="anchor" href="#acceptheaders" aria-hidden="true"><span class="octicon octicon-link"></span></a>AcceptHeaders</h1>
 
-<p><strong>AcceptHeaders</strong> is a ruby library that parses and sorts http accept headers.</p>
+<p><strong>AcceptHeaders</strong> is a ruby library that does content negotiation and parses and sorts http accept headers.</p>
 
 <p>Some features of the library are:</p>
 
 <ul>
 <li>Strict adherence to <a href="http://www.w3.org/Protocols/rfc2616/rfc2616.html">RFC 2616</a>, specifically <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">section 14</a>
 </li>
-<li>Full support for the <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1">Accept</a>, <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.2">Accept-Charset</a>,
-<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3">Accept-Encoding</a>, and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4">Accept-Language</a> HTTP
-request headers</li>
+<li>Full support for the <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1">Accept</a>, <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3">Accept-Encoding</a>,
+and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4">Accept-Language</a> HTTP request headers</li>
+<li>
+<code>Accept-Charset</code> is not supported because it's <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation#The_Accept-Charset.3A_header">obsolete</a>
+</li>
+<li>Parser tested against all IANA registered <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">media types</a>
+</li>
 <li>A comprehensive <a href="http://github.com/kamui/accept_headers/tree/master/spec/">spec suite</a> that covers many edge cases</li>
 </ul>
 
@@ -73,64 +76,90 @@ request headers</li>
 <h2>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
 
-<p><code>AcceptHeaders</code> can parse the Accept Header and return an array of <code>MediaType</code>s in descending order according to the spec, which takes into account <code>q</code> value, <code>type</code>/<code>subtype</code> and <code>params</code> specificity.</p>
+<h3>
+<a id="accept" class="anchor" href="#accept" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accept</h3>
 
-<div class="highlight highlight-ruby"><pre><span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.parse(<span class="pl-s1"><span class="pl-pds">"</span>text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5<span class="pl-pds">"</span></span>)</pre></div>
+<p><code>AcceptHeaders::MediaType::Negotiator</code> is a class that is initialized with an <code>Accept</code> header string and will internally store an array of <code>MediaType</code>s in descending order according to the spec, which takes into account <code>q</code> value, <code>type</code>/<code>subtype</code> and <code>params</code> specificity.</p>
 
-<p>Will generate this equivalent array:</p>
+<div class="highlight highlight-ruby"><pre>media_types <span class="pl-ko">=</span> <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>::<span class="pl-sc">Negotiator</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">"</span>text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5<span class="pl-pds">"</span></span>)
 
-<div class="highlight highlight-ruby"><pre>[
-  <span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>1<span class="pl-pds">'</span></span> }),
-  <span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.7</span>),
-  <span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.5</span>),
-  <span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.4</span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>2<span class="pl-pds">'</span></span> }),
-  <span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.3</span>)
+media_types.list
+
+<span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
+
+[
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>1<span class="pl-pds">'</span></span> }),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.7</span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.5</span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.4</span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>2<span class="pl-pds">'</span></span> }),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.3</span>)
 ]</pre></div>
 
-<p>Parsing <code>Charset</code>:</p>
+<p><code>#negotiate</code> takes a string of media types supported (by your API or route/controller) and returns the best match as a <code>MediaType</code>. This will first check the available list for any matching media types with a <code>q</code> of 0 and return <code>nil</code> if there is a match. Then it'll look to the highest <code>q</code> values and look for matches in descending <code>q</code> value order and return the first match account for wildcards.</p>
 
-<div class="highlight highlight-ruby"><pre><span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Charset</span>.parse(<span class="pl-s1"><span class="pl-pds">"</span>us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macintosh<span class="pl-pds">"</span></span>)</pre></div>
+<div class="highlight highlight-ruby"><pre>media_type.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>)
 
-<p>generates:</p>
+<span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<div class="highlight highlight-ruby"><pre>[
-  <span class="pl-sc">Charset</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>iso-8859-1<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">Charset</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>macintosh<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">Charset</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>utf-8<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.8</span>),
-  <span class="pl-sc">Charset</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>us-ascii<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.5</span>)
+<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>1<span class="pl-pds">'</span></span> })</pre></div>
+
+<h3>
+<a id="accept-encoding" class="anchor" href="#accept-encoding" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accept-Encoding</h3>
+
+<p><code>AcceptHeader::Charset::Encoding</code>:</p>
+
+<div class="highlight highlight-ruby"><pre>encodings <span class="pl-ko">=</span> <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>::<span class="pl-sc">Negotiator</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">"</span>deflate; q=0.5, gzip, compress; q=0.8, identity<span class="pl-pds">"</span></span>)
+
+encodings.list
+
+<span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
+
+[
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>compress<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.8</span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>deflate<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.5</span>)
 ]</pre></div>
 
-<p>Parsing <code>Encoding</code>:</p>
+<p><code>#negotiate</code>:</p>
 
-<div class="highlight highlight-ruby"><pre><span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.parse(<span class="pl-s1"><span class="pl-pds">"</span>deflate; q=0.5, gzip, compress; q=0.8, identity<span class="pl-pds">"</span></span>)</pre></div>
+<div class="highlight highlight-ruby"><pre>encodings.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>)
 
-<p>generates:</p>
+<span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<div class="highlight highlight-ruby"><pre>[
-  <span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>compress<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.8</span>),
-  <span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>deflate<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.5</span>)
+<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>)</pre></div>
+
+<h3>
+<a id="accept-language" class="anchor" href="#accept-language" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accept-Language</h3>
+
+<p><code>Accept::Language::Negotiator</code>:</p>
+
+<div class="highlight highlight-ruby"><pre>languages <span class="pl-ko">=</span> <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>::<span class="pl-sc">Negotiator</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">"</span>en-*, en-us, *;q=0.8<span class="pl-pds">"</span></span>)
+
+languages.list
+
+<span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
+
+[
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>us<span class="pl-pds">'</span></span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>),
+  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.8</span>)
 ]</pre></div>
 
-<p>Parsing <code>Language</code>:</p>
+<p><code>#negotiate</code>:</p>
 
-<div class="highlight highlight-ruby"><pre><span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.parse(<span class="pl-s1"><span class="pl-pds">"</span>en-*, en-us, *;q=0.8<span class="pl-pds">"</span></span>)</pre></div>
+<div class="highlight highlight-ruby"><pre>languages.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>en-us<span class="pl-pds">'</span></span>)
 
-<p>generates:</p>
+<span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<div class="highlight highlight-ruby"><pre>[
-  <span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>us<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.8</span>)
-]</pre></div>
+<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>us<span class="pl-pds">'</span></span>)</pre></div>
 
 <h2>
 <a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>Todo</h2>
 
 <ul>
 <li>Write rack middleware</li>
-<li>Add methods to return a best match depending on a list of supported inputs</li>
+<li>More edge case tests</li>
 </ul>
 
 <h2>
@@ -143,14 +172,13 @@ request headers</li>
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create a new Pull Request</li>
 </ol>
-        </section>
-
-        <footer>
-          Accept headers is maintained by <a href="https://github.com/kamui">kamui</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
-
-                  <script type="text/javascript">
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		          <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -161,7 +189,5 @@ request headers</li>
             } catch(err) {}
           </script>
 
-      </div>
-    </div>
   </body>
 </html>
