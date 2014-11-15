@@ -36,6 +36,20 @@ module AcceptHeaders
           ]
         end
 
+        it "supports all registered IANA media types" do
+          require 'csv'
+          # https://www.iana.org/assignments/media-types/media-types.xhtml
+          %w[application audio image message model multipart text video].each do |filename|
+            CSV.foreach("spec/support/#{filename}.csv", headers: true) do |row|
+              media_type = row['Template']
+              # audio/amr-wb+ is a typo
+              if media_type && media_type != 'amr-wb+'
+                subject.new(media_type).list.size.must_equal 1
+              end
+            end
+          end
+        end
+
         it "sets media type to */* when the accept header is empty" do
           subject.new('').list.must_equal [
             MediaType.new('*', '*')
