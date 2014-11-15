@@ -49,7 +49,11 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
-      "#{primary_tag}-#{subtag};q=#{qvalue}"
+      "#{language_tag};q=#{qvalue}"
+    end
+
+    def language_tag
+      "#{primary_tag}-#{subtag}"
     end
 
     def match(other)
