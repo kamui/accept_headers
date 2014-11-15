@@ -48,7 +48,7 @@ module AcceptHeaders
 
               if media_type
                 subject.new(media_type).list.size.must_equal 1
-                subject.new(media_type).list.first.to_s.start_with?(media_type.downcase).must_equal true
+                subject.new(media_type).list.first.media_range.must_equal media_type.downcase
               end
             end
           end

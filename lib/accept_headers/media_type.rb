@@ -63,11 +63,15 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
-      string = "#{type}/#{subtype};q=#{qvalue}"
+      string = "#{media_range};q=#{qvalue}"
       if params.size > 0
         params.each { |k, v| string.concat(";#{k}=#{v}") }
       end
       string
+    end
+
+    def media_range
+      "#{type}/#{subtype}"
     end
 
     def match(other)

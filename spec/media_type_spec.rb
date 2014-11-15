@@ -91,9 +91,13 @@ module AcceptHeaders
       })
     end
 
-    it "convers to string" do
+    it "converts to string" do
       s = subject.new('text', 'html', q: 0.9, params: { 'level' => '1' }).to_s
       s.must_equal "text/html;q=0.9;level=1"
+    end
+
+    it "outputs the media range" do
+      subject.new('text', 'html', params: { 'level' => '1' }).media_range.must_equal "text/html"
     end
   end
 end
