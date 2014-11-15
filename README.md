@@ -11,7 +11,8 @@ Some features of the library are:
   * Strict adherence to [RFC 2616][rfc], specifically [section 14][rfc-sec14]
   * Full support for the [Accept][rfc-sec14-1], [Accept-Encoding][rfc-sec14-3],
     and [Accept-Language][rfc-sec14-4] HTTP request headers
-  * `Accept-Charset` is not supported because it's [obsolete](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation#The_Accept-Charset.3A_header).
+  * `Accept-Charset` is not supported because it's [obsolete](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation#The_Accept-Charset.3A_header)
+  * Parser tested against all IANA registered [media types][iana-media-types]
   * A comprehensive [spec suite][spec] that covers many edge cases
 
 This library is optimistic when parsing headers. If a specific media type, encoding, charset, or language can't be parsed, is in an invalid format, or contains invalid characters, it will skip that specific entry when constructing the sorted list. If a `q` value can't be read or is in the wrong format (more than 3 decimal places), it will default it to `0.001` so it still has a chance to match. Lack of an explicit `q` value of course defaults to 1.
@@ -21,6 +22,7 @@ This library is optimistic when parsing headers. If a specific media type, encod
 [rfc-sec14-1]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
 [rfc-sec14-3]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
 [rfc-sec14-4]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
+[iana-media-types]: https://www.iana.org/assignments/media-types/media-types.xhtml
 [spec]: http://github.com/kamui/accept_headers/tree/master/spec/
 
 ## Installation
