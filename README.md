@@ -9,9 +9,9 @@
 Some features of the library are:
 
   * Strict adherence to [RFC 2616][rfc], specifically [section 14][rfc-sec14]
-  * Full support for the [Accept][rfc-sec14-1], [Accept-Charset][rfc-sec14-2],
-    [Accept-Encoding][rfc-sec14-3], and [Accept-Language][rfc-sec14-4] HTTP
-    request headers
+  * Full support for the [Accept][rfc-sec14-1], [Accept-Encoding][rfc-sec14-3],
+    and [Accept-Language][rfc-sec14-4] HTTP request headers
+  * `Accept-Charset` is not supported because it's [obsolete](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation#The_Accept-Charset.3A_header).
   * A comprehensive [spec suite][spec] that covers many edge cases
 
 This library is optimistic when parsing headers. If a specific media type, encoding, charset, or language can't be parsed, is in an invalid format, or contains invalid characters, it will skip that specific entry when constructing the sorted list. If a `q` value can't be read or is in the wrong format (more than 3 decimal places), it will default it to `0.001` so it still has a chance to match. Lack of an explicit `q` value of course defaults to 1.
@@ -19,7 +19,6 @@ This library is optimistic when parsing headers. If a specific media type, encod
 [rfc]: http://www.w3.org/Protocols/rfc2616/rfc2616.html
 [rfc-sec14]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 [rfc-sec14-1]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
-[rfc-sec14-2]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.2
 [rfc-sec14-3]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
 [rfc-sec14-4]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
 [spec]: http://github.com/kamui/accept_headers/tree/master/spec/
@@ -70,35 +69,6 @@ media_type.negotiate('text/html')
 # Returns:
 
 AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' })
-```
-
-### Accept-Charset
-
-`AcceptHeader::Charset::Negotiator`:
-
-```ruby
-charsets = AcceptHeaders::Charset::Negotiator.new("us-ascii; q=0.5, iso-8859-1, utf-8; q=0.8, macintosh")
-
-charsets.list
-
-# Returns:
-
-[
-  AcceptHeaders::Charset.new('iso-8859-1'),
-  AcceptHeaders::Charset.new('macintosh'),
-  AcceptHeaders::Charset.new('utf-8', q: 0.8),
-  AcceptHeaders::Charset.new('us-ascii', q: 0.5)
-]
-```
-
-`#negotiate`:
-
-```ruby
-charsets.negotiate('iso-8859-1')
-
-# Returns:
-
-AcceptHeaders::Charset.new('iso-8859-1')
 ```
 
 ### Accept-Encoding
