@@ -64,7 +64,7 @@ module AcceptHeaders
       })
     end
 
-    it "convers to string" do
+    it "converts to string" do
       s = subject.new('gzip', q: 0.9).to_s
       s.must_equal "gzip;q=0.9"
     end
