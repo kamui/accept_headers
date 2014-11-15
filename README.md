@@ -134,6 +134,7 @@ AcceptHeaders::Language.new('en', 'us')
 
 * Write rack middleware
 * More edge case tests
+* Add rdoc
 
 ## Contributing
 
