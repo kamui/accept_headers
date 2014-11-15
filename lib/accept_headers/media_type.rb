@@ -77,7 +77,7 @@ module AcceptHeaders
     def match(other)
       if type == other.type && subtype == other.subtype
         true
-      elsif type == other.type && subtype == '*'
+      elsif type == other.type && other.subtype == '*'
         true
       elsif other.type == '*' && other.subtype == '*'
         true
