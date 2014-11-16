@@ -39,11 +39,11 @@ module AcceptHeaders
       match_data = ENCODING_PATTERN.match(encoding_string)
       if !match_data
         false
-      elsif match_data[:encoding] == 'identity'
-        true
       elsif encoding == match_data[:encoding]
         true
-      elsif match_data[:encoding] == '*'
+      elsif match_data[:encoding] == 'identity'
+        true
+      elsif encoding == '*'
         true
       else
         false
