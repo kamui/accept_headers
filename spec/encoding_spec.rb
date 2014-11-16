@@ -68,5 +68,73 @@ module AcceptHeaders
       s = subject.new('gzip', q: 0.9).to_s
       s.must_equal "gzip;q=0.9"
     end
+
+    describe "#accept?" do
+      it "accepted if the encoding is the same" do
+        a = subject.new('gzip')
+        a.accept?('gzip').must_equal true
+        b = subject.new('gzip', q: 0.001)
+        b.accept?('gzip').must_equal true
+      end
+
+      it "accepted if the encoding is *" do
+        a = subject.new('*')
+        a.accept?('gzip').must_equal true
+        b = subject.new('*', q: 0.1)
+        b.accept?('gzip').must_equal true
+      end
+
+      it "not accepted if the encoding doesn't match" do
+        a = subject.new('gzip')
+        a.accept?('compress').must_equal false
+        b = subject.new('gzip', q: 0.4)
+        b.accept?('compress').must_equal false
+      end
+
+      it "not accepted if q is 0" do
+        a = subject.new('gzip', q: 0)
+        a.accept?('gzip').must_equal false
+        b = subject.new('*', q: 0)
+        b.accept?('gzip').must_equal false
+      end
+
+      # TODO: test *
+      # it "not accepted if..." do
+      #   a = subject.new('gzip')
+      #   a.accept?('*').must_equal true
+      # end
+    end
+
+    describe "#reject?" do
+      describe "given q is 0" do
+        it "rejected if the encoding is the same" do
+          a = subject.new('gzip', q: 0)
+          a.reject?('gzip').must_equal true
+        end
+
+        it "rejected if the encoding is *" do
+          a = subject.new('*', q: 0)
+          a.reject?('gzip').must_equal true
+        end
+
+        it "not rejected if the encoding doesn't match" do
+          a = subject.new('gzip', q: 0)
+          a.reject?('compress').must_equal false
+        end
+
+        # TODO: test *
+        # it "not rejected if..." do
+        #   a = subject.new('gzip', q: 0)
+        #   a.reject?('*').must_equal true
+        # end
+      end
+
+      it "not rejected if q > 0" do
+        a = subject.new('gzip', q: 0.001)
+        a.reject?('gzip').must_equal false
+        b = subject.new('*', q: 0.9)
+        b.reject?('gzip').must_equal false
+      end
+    end
   end
 end
