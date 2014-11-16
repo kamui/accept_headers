@@ -99,12 +99,27 @@ module AcceptHeaders
         end
       end
 
-      describe "negotiate supported media types" do
+      describe "#negotiate" do
         it "returns a best matching media type" do
           n = subject.new("text/*, text/html, text/html;level=1, */*")
           n.negotiate("text/html").must_equal MediaType.new('text', 'html', params: { 'level' => '1' })
         end
       end
+
+      describe "#accept?" do
+        it "returns whether specific media type is accepted" do
+          n = subject.new("video/*, text/html, text/html;level=1;q:0.8")
+          n.accept?("text/html").must_equal true
+          n.accept?("application/json").must_equal false
+          n.accept?("video/ogg").must_equal true
+        end
+
+        it "returns false if accepted but q=0" do
+          n = subject.new("video/*, text/html;q=0")
+          n.accept?("text/html").must_equal false
+          n.accept?("video/ogg").must_equal true
+        end
+       end
     end
   end
 end

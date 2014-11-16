@@ -7,6 +7,8 @@ module AcceptHeaders
 
     attr_reader :primary_tag, :subtag, :params
 
+    LANGUAGE_TAG_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
+
     def initialize(primary_tag = '*', subtag = nil, q: 1.0)
       self.primary_tag = primary_tag
       self.subtag = subtag
@@ -56,12 +58,16 @@ module AcceptHeaders
       "#{primary_tag}-#{subtag}"
     end
 
-    def match(other)
-      if primary_tag == other.primary_tag && subtag == other.subtag
+    private
+    def match(language_tag_string)
+      match_data = LANGUAGE_TAG_PATTERN.match(language_tag_string)
+      if !match_data
+        false
+      elsif primary_tag == match_data[:primary_tag] && subtag == match_data[:subtag]
         true
-      elsif primary_tag == other.primary_tag && subtag == '*'
+      elsif primary_tag == match_data[:primary_tag] && subtag == '*'
         true
-      elsif other.primary_tag == '*'
+      elsif match_data[:primary_tag] == '*'
         true
       else
         false

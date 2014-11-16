@@ -7,7 +7,6 @@ module AcceptHeaders
       include Negotiatable
 
       private
-      MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
       PARAM_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
 
       def parse(original_header)
@@ -19,7 +18,7 @@ module AcceptHeaders
         header.split(',').each do |entry|
           accept_media_range, accept_params = entry.split(';', 2)
           next if accept_media_range.nil?
-          media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
+          media_range = MediaType::MEDIA_TYPE_PATTERN.match(accept_media_range)
           next if media_range.nil?
           begin
             media_types << MediaType.new(

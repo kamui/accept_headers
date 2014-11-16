@@ -63,14 +63,20 @@ media_types.list
 ]
 ```
 
-`#negotiate` takes a string of media types supported (by your API or route/controller) and returns the best match as a `MediaType`. This will first check the available list for any matching media types with a `q` of 0 and return `nil` if there is a match. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match account for wildcards.
+`#negotiate` takes a string of media types supported (by your API or route/controller) and returns the best match as a `MediaType`. This will first check the available list for any matching media types with a `q` of 0 and return `nil` if there is a match. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns `nil`.
 
 ```ruby
-media_type.negotiate('text/html')
+media_types.negotiate('text/html')
 
 # Returns:
 
 AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' })
+```
+
+`#accept?`:
+
+```ruby
+media_types.accept?('text/html') # true
 ```
 
 ### Accept-Encoding
@@ -86,7 +92,6 @@ encodings.list
 
 [
   AcceptHeaders::Encoding.new('gzip'),
-  AcceptHeaders::Encoding.new('identity'),
   AcceptHeaders::Encoding.new('compress', q: 0.8),
   AcceptHeaders::Encoding.new('deflate', q: 0.5)
 ]
@@ -95,11 +100,21 @@ encodings.list
 `#negotiate`:
 
 ```ruby
-encodings.negotiate('identity')
+encodings.negotiate('gzip')
 
 # Returns:
 
-AcceptHeaders::Encoding.new('identity')
+AcceptHeaders::Encoding.new('gzip')
+```
+
+`#accept?`:
+
+```ruby
+encodings.accept?('gzip') # true
+
+# Identity is accepted as long as it's not explicitly rejected 'identity;q=0'
+
+encodings.accept?('identity') # true
 ```
 
 ### Accept-Language
@@ -130,7 +145,13 @@ languages.negotiate('en-us')
 AcceptHeaders::Language.new('en', 'us')
 ```
 
-## Todo
+`#accept?`:
+
+```ruby
+languages.accept?('en-gb') # true
+```
+
+## TODO
 
 * Write rack middleware
 * More edge case tests

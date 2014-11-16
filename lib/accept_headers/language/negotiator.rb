@@ -6,8 +6,6 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      LANGUAGE_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
-
       private
       def parse(original_header)
         header = original_header.dup
@@ -18,7 +16,7 @@ module AcceptHeaders
         header.split(',').each do |entry|
           language_arr = entry.split(';', 2)
           next if language_arr[0].nil?
-          language_range = LANGUAGE_PATTERN.match(language_arr[0])
+          language_range = Language::LANGUAGE_TAG_PATTERN.match(language_arr[0])
           next if language_range.nil?
           begin
             languages << Language.new(

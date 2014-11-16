@@ -7,6 +7,8 @@ module AcceptHeaders
 
     attr_reader :encoding
 
+    ENCODING_PATTERN = /^\s*(?<encoding>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*$/
+
     def initialize(encoding = '*', q: 1.0)
       self.encoding = encoding
       self.q = q
@@ -32,10 +34,16 @@ module AcceptHeaders
       "#{encoding};q=#{qvalue}"
     end
 
-    def match(other)
-      if encoding == other.encoding
+    private
+    def match(encoding_string)
+      match_data = ENCODING_PATTERN.match(encoding_string)
+      if !match_data
+        false
+      elsif match_data[:encoding] == 'identity'
         true
-      elsif other.encoding == '*'
+      elsif encoding == match_data[:encoding]
+        true
+      elsif match_data[:encoding] == '*'
         true
       else
         false

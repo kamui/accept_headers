@@ -7,6 +7,8 @@ module AcceptHeaders
 
     attr_reader :type, :subtype, :params
 
+    MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
+
     def initialize(type = '*', subtype = '*', q: 1.0, params: {})
       self.type = type
       self.subtype = subtype
@@ -74,12 +76,16 @@ module AcceptHeaders
       "#{type}/#{subtype}"
     end
 
-    def match(other)
-      if type == other.type && subtype == other.subtype
+    private
+    def match(media_range_string)
+      match_data = MEDIA_TYPE_PATTERN.match(media_range_string)
+      if !match_data
+        false
+      elsif type == match_data[:type] && subtype == match_data[:subtype]
         true
-      elsif type == other.type && other.subtype == '*'
+      elsif type == match_data[:type] && subtype == '*'
         true
-      elsif other.type == '*' && other.subtype == '*'
+      elsif type == '*' && subtype == '*'
         true
       else
         false

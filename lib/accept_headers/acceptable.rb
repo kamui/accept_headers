@@ -5,8 +5,20 @@ module AcceptHeaders
 
     attr_reader :q
 
-    def match(other)
-      raise NotImplementedError.new("#match is not implemented")
+    def reject?(other)
+      if q != 0.0
+        false
+      else
+        match(other)
+      end
+    end
+
+    def accept?(other)
+      if q == 0.0
+        false
+      else
+        match(other)
+      end
     end
 
     def q=(value)
@@ -22,6 +34,11 @@ module AcceptHeaders
         raise InvalidQError.new("q must be at most 3 decimal places")
       end
       @q = q_float
+    end
+
+    private
+    def match(other)
+      raise NotImplementedError.new("#match is not implemented")
     end
   end
 end

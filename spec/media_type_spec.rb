@@ -99,5 +99,43 @@ module AcceptHeaders
     it "outputs the media range" do
       subject.new('text', 'html', params: { 'level' => '1' }).media_range.must_equal "text/html"
     end
+
+    describe "#accept?" do
+      it "accepted if the type and subtype are the same" do
+        a = subject.new('text', 'html')
+        a.accept?('text/html').must_equal true
+      end
+
+      it "accepte if the type is the same and the other subtype is *" do
+        a = subject.new('text', '*')
+        a.accept?('text/html').must_equal true
+      end
+
+      it "rejected if the type and subtype are *" do
+        a = subject.new('*')
+        a.accept?('text/html').must_equal true
+      end
+
+      it "rejected if the type and subtype don't match" do
+        a = subject.new('text', 'html')
+        a.accept?('application/json').must_equal false
+      end
+
+      it "rejected if the type  don't match" do
+        a = subject.new('text', 'plain')
+        a.accept?('application/plain').must_equal false
+      end
+
+      it "rejected if the subtype don't match" do
+        a = subject.new('text', 'html')
+        a.accept?('text/plain').must_equal false
+      end
+
+      # TODO: test *
+      it "rejected if..." do
+        a = subject.new('text', 'plain')
+        a.accept?('*').must_equal false
+      end
+    end
   end
 end

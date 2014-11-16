@@ -16,9 +16,9 @@ module AcceptHeaders
         header.split(',').each do |entry|
           encoding_arr = entry.split(';', 2)
           next if encoding_arr[0].nil?
-          encoding = TOKEN_PATTERN.match(encoding_arr[0])
+          encoding = Encoding::ENCODING_PATTERN.match(encoding_arr[0])
           next if encoding.nil?
-          encodings << Encoding.new(encoding[:token], q: parse_q(encoding_arr[1]))
+          encodings << Encoding.new(encoding[:encoding], q: parse_q(encoding_arr[1]))
         end
         encodings.sort! { |x,y| y <=> x }
       end

@@ -3,7 +3,6 @@ module AcceptHeaders
     class Error < StandardError; end
     class ParseError < Error; end
 
-    TOKEN_PATTERN = /^\s*(?<token>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*$/
     Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
 
     attr_reader :list
@@ -12,25 +11,29 @@ module AcceptHeaders
       @list = parse(header)
     end
 
-    def negotiate(supported_string)
-      supported = parse(supported_string)
+    def negotiate(supported)
       return nil if @list.empty?
+      supported = [*supported]
       rejects, acceptable = @list.partition { |m| m.q == 0.0 }
       rejects.each do |reject|
         supported.each do |support|
-          if support.match(reject)
+          if reject.reject?(support)
             return nil
           end
         end
       end
       acceptable.sort { |x,y| y <=> x }.each do |accepted|
         supported.each do |support|
-          if support.match(accepted)
+          if accepted.accept?(support)
             return accepted
           end
         end
       end
       nil
+    end
+
+    def accept?(other)
+      negotiate(other) ? true : false
     end
 
     private
