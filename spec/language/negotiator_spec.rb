@@ -21,6 +21,12 @@ module AcceptHeaders
           ]
         end
 
+        it "ignores the 'Accept-Language:' prefix" do
+          subject.new('Accept-Language: en-us').list.must_equal [
+            Language.new('en', 'us')
+          ]
+        end
+
         it "sets media primary tag to */* when the accept header is empty" do
           subject.new('').list.must_equal [
             Language.new('*', '*')

@@ -36,6 +36,12 @@ module AcceptHeaders
           ]
         end
 
+        it "ignores the 'Accept:' prefix" do
+          subject.new('Accept: text/html').list.must_equal [
+            MediaType.new('text', 'html')
+          ]
+        end
+
         it "supports all registered IANA media types" do
           require 'csv'
           # https://www.iana.org/assignments/media-types/media-types.xhtml

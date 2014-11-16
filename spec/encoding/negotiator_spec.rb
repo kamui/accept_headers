@@ -22,6 +22,12 @@ module AcceptHeaders
           ]
         end
 
+        it "ignores the 'Accept-Encoding:' prefix" do
+          subject.new('Accept-Encoding: gzip').list.must_equal [
+            Encoding.new('gzip')
+          ]
+        end
+
         it "supports all registered IANA encodings" do
           require 'csv'
           # https://www.iana.org/assignments/http-parameters/http-parameters.xml#content-coding
