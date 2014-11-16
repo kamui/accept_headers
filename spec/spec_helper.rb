@@ -1,9 +1,5 @@
-require "minitest/autorun"
-require "minitest/focus"
 require "codeclimate-test-reporter"
 require "simplecov"
-require "awesome_print"
-require "pry"
 
 CodeClimate::TestReporter.configure do |config|
   config.logger.level = Logger::WARN
@@ -14,6 +10,12 @@ SimpleCov.start do
     SimpleCov::Formatter::HTMLFormatter,
     CodeClimate::TestReporter::Formatter
   ]
+  add_filter 'spec/'
 end
+
+require "minitest/autorun"
+require "minitest/focus"
+require "awesome_print"
+require "pry"
 
 require_relative "../lib/accept_headers"
