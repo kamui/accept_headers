@@ -55,7 +55,11 @@ module AcceptHeaders
     end
 
     def language_tag
-      "#{primary_tag}-#{subtag}"
+      if primary_tag == '*' && (subtag.nil? || subtag == '*')
+        '*'
+      else
+        "#{primary_tag}-#{subtag}"
+      end
     end
 
     private
@@ -67,7 +71,7 @@ module AcceptHeaders
         true
       elsif primary_tag == match_data[:primary_tag] && subtag == '*'
         true
-      elsif match_data[:primary_tag] == '*'
+      elsif primary_tag == '*'
         true
       else
         false

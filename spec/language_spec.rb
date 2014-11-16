@@ -87,8 +87,15 @@ module AcceptHeaders
       s.must_equal "en-us;q=0.9"
     end
 
-    it "outputs the language tag" do
-      subject.new('en', 'us', q: 0.9).language_tag.must_equal "en-us"
+    describe "#language_tag" do
+      it "outputs the language tag" do
+        subject.new('en', 'us', q: 0.9).language_tag.must_equal "en-us"
+      end
+
+      it "if primary tag is * and subtag is * or nil, outputs *" do
+        subject.new('*', nil).language_tag.must_equal '*'
+        subject.new('*', '*').language_tag.must_equal '*'
+      end
     end
   end
 end
