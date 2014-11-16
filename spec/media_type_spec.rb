@@ -104,37 +104,111 @@ module AcceptHeaders
       it "accepted if the type and subtype are the same" do
         a = subject.new('text', 'html')
         a.accept?('text/html').must_equal true
+        b = subject.new('text', 'html', q: 0.001)
+        b.accept?('text/html').must_equal true
       end
 
-      it "accepte if the type is the same and the other subtype is *" do
+      it "accepted if the type is the same and the other subtype is *" do
         a = subject.new('text', '*')
         a.accept?('text/html').must_equal true
+        b = subject.new('text', '*', q: 0.9)
+        b.accept?('text/html').must_equal true
       end
 
-      it "rejected if the type and subtype are *" do
+      it "accepted if the type and subtype are *" do
         a = subject.new('*')
         a.accept?('text/html').must_equal true
+        b = subject.new('*', q: 0.1)
+        b.accept?('text/html').must_equal true
       end
 
-      it "rejected if the type and subtype don't match" do
+      it "not accepted if the type and subtype don't match" do
         a = subject.new('text', 'html')
         a.accept?('application/json').must_equal false
+        b = subject.new('text', 'html', q: 0.2)
+        b.accept?('application/json').must_equal false
       end
 
-      it "rejected if the type  don't match" do
+      it "not accepted if the type doesn't match" do
         a = subject.new('text', 'plain')
         a.accept?('application/plain').must_equal false
+        b = subject.new('text', 'plain', q: 0.4)
+        b.accept?('application/json').must_equal false
       end
 
-      it "rejected if the subtype don't match" do
+      it "not accepted if the subtype doesn't match" do
         a = subject.new('text', 'html')
         a.accept?('text/plain').must_equal false
+        b = subject.new('text', 'html', q: 0.6)
+        b.accept?('text/plain').must_equal false
+      end
+
+      it "not accepted if q is 0" do
+        a = subject.new('text', 'html', q: 0)
+        a.accept?('text/html').must_equal false
+        a.accept?('text/plain').must_equal false
+        a.accept?('application/plain').must_equal false
+        b = subject.new('text', '*', q: 0)
+        b.accept?('text/html').must_equal false
+        c = subject.new('*', q: 0)
+        c.accept?('text/html').must_equal false
       end
 
       # TODO: test *
-      it "rejected if..." do
+      it "not accepted if..." do
         a = subject.new('text', 'plain')
         a.accept?('*').must_equal false
+      end
+    end
+
+    describe "#reject?" do
+      describe "given q is 0" do
+        it "rejected if the type and subtype are the same" do
+          a = subject.new('text', 'html', q: 0)
+          a.reject?('text/html').must_equal true
+        end
+
+        it "rejected if the type is the same and the other subtype is *" do
+          a = subject.new('text', '*', q: 0)
+          a.reject?('text/html').must_equal true
+        end
+
+        it "rejected if the type and subtype are *" do
+          a = subject.new('*', q: 0)
+          a.reject?('text/html').must_equal true
+        end
+
+        it "not rejected if the type and subtype don't match" do
+          a = subject.new('text', 'html', q: 0)
+          a.reject?('application/json').must_equal false
+        end
+
+        it "not rejected if the type doesn't match" do
+          a = subject.new('text', 'plain', q: 0)
+          a.reject?('application/plain').must_equal false
+        end
+
+        it "not rejected if the subtype doesn't match" do
+          a = subject.new('text', 'html', q: 0)
+          a.reject?('text/plain').must_equal false
+        end
+
+        # TODO: test *
+        it "not rejected if..." do
+          a = subject.new('text', 'plain', q: 0)
+          a.reject?('*').must_equal false
+        end
+      end
+
+      it "not rejected if q > 0" do
+        a = subject.new('text', 'html', q: 0.001)
+        a.reject?('text/html').must_equal false
+        a.reject?('text/plain').must_equal false
+        a.reject?('application/plain').must_equal false
+        b = subject.new('text', '*', q: 0.9)
+        b.reject?('text/html').must_equal false
+        c = subject.new('*', q: 1)
+        c.reject?('text/html').must_equal false
       end
     end
   end
