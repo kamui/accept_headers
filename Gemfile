@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in retriable.gemspec
+# Specify your gem's dependencies in accept_headers.gemspec
 gemspec
 
 group :test do
