@@ -1,5 +1,7 @@
 ## HEAD
 
+  * Require ruby 2.0.0 minimum in gemspec.
+
 ## 0.0.5 / November 16, 2014
 
   * Add `#accept?` and `#reject?` methods to all negotiators.
