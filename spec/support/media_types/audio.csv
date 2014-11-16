@@ -6,7 +6,7 @@ Name,Template,Reference
 ac3,audio/ac3,[RFC4184]
 AMR,audio/AMR,[RFC4867]
 AMR-WB,audio/AMR-WB,[RFC4867]
-amr-wb+,amr-wb+,[RFC4352]
+amr-wb+,audio/amr-wb+,[RFC4352]
 aptx,audio/aptx,[RFC7310]
 asc,audio/asc,[RFC6295]
 ATRAC-ADVANCED-LOSSLESS,audio/ATRAC-ADVANCED-LOSSLESS,[RFC5584]

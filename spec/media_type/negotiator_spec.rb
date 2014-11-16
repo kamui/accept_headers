@@ -43,9 +43,6 @@ module AcceptHeaders
             CSV.foreach("spec/support/media_types/#{filename}.csv", headers: true) do |row|
               media_type = row['Template']
 
-              # audio/amr-wb+ is a typo
-              media_type = 'audio/amr-wb+' if media_type == 'amr-wb+'
-
               if media_type
                 subject.new(media_type).list.size.must_equal 1
                 subject.new(media_type).list.first.media_range.must_equal media_type.downcase
