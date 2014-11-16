@@ -40,7 +40,7 @@ module AcceptHeaders
           require 'csv'
           # https://www.iana.org/assignments/media-types/media-types.xhtml
           %w[application audio image message model multipart text video].each do |filename|
-            CSV.foreach("spec/support/#{filename}.csv", headers: true) do |row|
+            CSV.foreach("spec/support/media_types/#{filename}.csv", headers: true) do |row|
               media_type = row['Template']
 
               # audio/amr-wb+ is a typo

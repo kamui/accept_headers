@@ -22,6 +22,19 @@ module AcceptHeaders
           ]
         end
 
+        it "supports all registered IANA encodings" do
+          require 'csv'
+          # https://www.iana.org/assignments/http-parameters/http-parameters.xml#content-coding
+          CSV.foreach("spec/support/encodings/content-coding.csv", headers: true) do |row|
+            encoding = row['Name']
+
+            if encoding
+              subject.new(encoding).list.size.must_equal 1
+              subject.new(encoding).list.first.encoding.must_equal encoding.downcase
+            end
+          end
+        end
+
         it "sets encoding to * when the accept-encoding header is empty" do
           subject.new('').list.must_equal [
             Encoding.new('*')
