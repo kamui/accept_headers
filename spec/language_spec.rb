@@ -97,5 +97,117 @@ module AcceptHeaders
         subject.new('*', '*').language_tag.must_equal '*'
       end
     end
+
+    describe "#accept?" do
+      it "accepted if the primary_tag and subtag are the same" do
+        a = subject.new('en', 'us')
+        a.accept?('en-us').must_equal true
+        b = subject.new('en', 'us', q: 0.001)
+        b.accept?('en-us').must_equal true
+      end
+
+      it "accepted if the primary_tag is the same and the other subtag is *" do
+        a = subject.new('en', '*')
+        a.accept?('en-us').must_equal true
+        b = subject.new('en', '*', q: 0.9)
+        b.accept?('en-us').must_equal true
+      end
+
+      it "accepted if the primary_tag and subtag are *" do
+        a = subject.new('*')
+        a.accept?('en-us').must_equal true
+        b = subject.new('*', q: 0.1)
+        b.accept?('en-us').must_equal true
+      end
+
+      it "not accepted if the primary_tag and subtag don't match" do
+        a = subject.new('en', 'us')
+        a.accept?('en-gb').must_equal false
+        b = subject.new('en', 'us', q: 0.2)
+        b.accept?('en-gb').must_equal false
+      end
+
+      it "not accepted if the primary_tag doesn't match" do
+        a = subject.new('en', 'us')
+        a.accept?('zh-us').must_equal false
+        b = subject.new('en', 'us', q: 0.4)
+        b.accept?('zh-us').must_equal false
+      end
+
+      it "not accepted if the subtag doesn't match" do
+        a = subject.new('en', 'us')
+        a.accept?('en-gb').must_equal false
+        b = subject.new('en', 'us', q: 0.6)
+        b.accept?('en-gb').must_equal false
+      end
+
+      it "not accepted if q is 0" do
+        a = subject.new('en', 'us', q: 0)
+        a.accept?('en-us').must_equal false
+        a.accept?('en-gb').must_equal false
+        a.accept?('zh-us').must_equal false
+        b = subject.new('en', '*', q: 0)
+        b.accept?('en-us').must_equal false
+        c = subject.new('*', q: 0)
+        c.accept?('en-us').must_equal false
+      end
+
+      # TODO: test *
+      it "not accepted if..." do
+        a = subject.new('en', 'us')
+        a.accept?('*').must_equal false
+      end
+    end
+
+    describe "#reject?" do
+      describe "given q is 0" do
+        it "rejected if the primary_tag and subtag are the same" do
+          a = subject.new('en', 'us', q: 0)
+          a.reject?('en-us').must_equal true
+        end
+
+        it "rejected if the primary_tag is the same and the other subtag is *" do
+          a = subject.new('en', '*', q: 0)
+          a.reject?('en-us').must_equal true
+        end
+
+        it "rejected if the primary_tag and subtag are *" do
+          a = subject.new('*', q: 0)
+          a.reject?('en-us').must_equal true
+        end
+
+        it "not rejected if the primary_tag and subtag don't match" do
+          a = subject.new('en', 'us', q: 0)
+          a.reject?('en-gb').must_equal false
+        end
+
+        it "not rejected if the primary_tag doesn't match" do
+          a = subject.new('en', 'us', q: 0)
+          a.reject?('zh-us').must_equal false
+        end
+
+        it "not rejected if the subtag doesn't match" do
+          a = subject.new('en', 'us', q: 0)
+          a.reject?('en-gb').must_equal false
+        end
+
+        # TODO: test *
+        it "not rejected if..." do
+          a = subject.new('en', 'us', q: 0)
+          a.reject?('*').must_equal false
+        end
+      end
+
+      it "not rejected if q > 0" do
+        a = subject.new('en', 'us', q: 0.001)
+        a.reject?('en-us').must_equal false
+        a.reject?('en-gb').must_equal false
+        a.reject?('zh-us').must_equal false
+        b = subject.new('en', '*', q: 0.9)
+        b.reject?('en-us').must_equal false
+        c = subject.new('*', q: 1)
+        c.reject?('en-us').must_equal false
+      end
+    end
   end
 end
