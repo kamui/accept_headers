@@ -95,13 +95,17 @@ media_types.list
   <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.3</span>)
 ]</pre></div>
 
-<p><code>#negotiate</code> takes a string of media types supported (by your API or route/controller) and returns the best match as a <code>MediaType</code>. This will first check the available list for any matching media types with a <code>q</code> of 0 and return <code>nil</code> if there is a match. Then it'll look to the highest <code>q</code> values and look for matches in descending <code>q</code> value order and return the first match account for wildcards.</p>
+<p><code>#negotiate</code> takes a string of media types supported (by your API or route/controller) and returns the best match as a <code>MediaType</code>. This will first check the available list for any matching media types with a <code>q</code> of 0 and return <code>nil</code> if there is a match. Then it'll look to the highest <code>q</code> values and look for matches in descending <code>q</code> value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns <code>nil</code>.</p>
 
-<div class="highlight highlight-ruby"><pre>media_type.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>)
+<div class="highlight highlight-ruby"><pre>media_types.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>)
 
 <span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
 <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>1<span class="pl-pds">'</span></span> })</pre></div>
+
+<p><code>#accept?</code>:</p>
+
+<div class="highlight highlight-ruby"><pre>media_types.accept?(<span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>) <span class="pl-c"><span class="pl-pdc">#</span> true</span></pre></div>
 
 <h3>
 <a id="accept-encoding" class="anchor" href="#accept-encoding" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accept-Encoding</h3>
@@ -116,18 +120,25 @@ encodings.list
 
 [
   <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>),
-  <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>),
   <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>compress<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.8</span>),
   <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>deflate<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.5</span>)
 ]</pre></div>
 
 <p><code>#negotiate</code>:</p>
 
-<div class="highlight highlight-ruby"><pre>encodings.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>)
+<div class="highlight highlight-ruby"><pre>encodings.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>)
 
 <span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>)</pre></div>
+<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>)</pre></div>
+
+<p><code>#accept?</code>:</p>
+
+<div class="highlight highlight-ruby"><pre>encodings.accept?(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>) <span class="pl-c"><span class="pl-pdc">#</span> true</span>
+
+<span class="pl-c"><span class="pl-pdc">#</span> Identity is accepted as long as it's not explicitly rejected 'identity;q=0'</span>
+
+encodings.accept?(<span class="pl-s1"><span class="pl-pds">'</span>identity<span class="pl-pds">'</span></span>) <span class="pl-c"><span class="pl-pdc">#</span> true</span></pre></div>
 
 <h3>
 <a id="accept-language" class="anchor" href="#accept-language" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accept-Language</h3>
@@ -154,12 +165,17 @@ languages.list
 
 <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>us<span class="pl-pds">'</span></span>)</pre></div>
 
+<p><code>#accept?</code>:</p>
+
+<div class="highlight highlight-ruby"><pre>languages.accept?(<span class="pl-s1"><span class="pl-pds">'</span>en-gb<span class="pl-pds">'</span></span>) <span class="pl-c"><span class="pl-pdc">#</span> true</span></pre></div>
+
 <h2>
-<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>Todo</h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>TODO</h2>
 
 <ul>
 <li>Write rack middleware</li>
 <li>More edge case tests</li>
+<li>Add rdoc</li>
 </ul>
 
 <h2>
