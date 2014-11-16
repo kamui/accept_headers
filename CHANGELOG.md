@@ -1,7 +1,15 @@
 ## HEAD
 
-  * Fix subtype checking in `MediaType#match`.
-  * Return `nil` if no matches on `Negotiatable#negotiate`.
+## 0.0.5 / November 16, 2014
+
+  * Add `#accept?` and `#reject?` methods to all negotiators.
+  * Add `#accept?` method to all negotiators.
+  * Return nil if no matches on `#negotiate`.
+  * Fix matching logic in `MediaType`, `Encoding`, and `Language`.
+  * Test all IANA registered encodings against the parser.
+  * Fix `simplecov` loading.
+  * Update `audio.csv` media type file with typo fix.
+  * More specs.
 
 ## 0.0.4 / November 15, 2014
 
