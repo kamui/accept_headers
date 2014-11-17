@@ -1,6 +1,11 @@
 ## HEAD
 
-  * Require ruby 2.0.0 minimum in gemspec.
+## 0.0.6 / November 17, 2014
+
+  * Support parsing params with quoted values.
+  * Fix bug in `#negotiate` returning nil on first q=0 match, it should skip this match and move on to the next one in the array input.
+  * Fix Charset typos in README.
+  * Add specs for ignoring accept header prefixes.
 
 ## 0.0.5 / November 16, 2014
 
