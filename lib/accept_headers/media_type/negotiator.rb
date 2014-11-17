@@ -35,11 +35,15 @@ module AcceptHeaders
       end
 
       def parse_params(params_string)
-        params = {}
-        return params if !params_string || params_string.empty?
-        params_string.split(';').each do |part|
-          param = PARAM_PATTERN.match(part)
-          params[param[:attribute]] = param[:value] if param
+        return {} if !params_string || params_string.empty?
+        if params_string.match(/['"]/)
+          params = params_string.scan(PARAM_PATTERN).map(&:compact).to_h
+        else
+          params = {}
+          params_string.split(';').each do |part|
+            param = PARAM_PATTERN.match(part)
+            params[param[:attribute]] = param[:value] if param
+          end
         end
         params.delete('q')
         params

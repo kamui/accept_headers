@@ -92,6 +92,13 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
     end
 
+    it "parses params with quoted values" do
+      subject.new('text/html;q=1;version="2";level="a;b;cc\'cd", text/html;version=\'1\';level=\'\blah;x;1;;\'').list.must_equal [
+        media_type.new('text', 'html', params: { 'version' => '2', 'level' => 'a;b;cc\'cd'}),
+        media_type.new('text', 'html', params: { 'version' => '1', 'level' => '\'\blah;x;1;;\''})
+      ]
+    end
+
     it "skips invalid media types" do
       subject.new("text/html, text/plain/omg;q=0.9").list.must_equal [
         media_type.new('text', 'html', q: 1)
