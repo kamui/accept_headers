@@ -19,3 +19,33 @@ require "awesome_print"
 require "pry"
 
 require_relative "../lib/accept_headers"
+
+class Minitest::Spec
+  def chrome
+    {
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+    }
+  end
+
+  def firefox
+    {
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    }
+  end
+
+  def safari
+    {
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    }
+  end
+
+  def ie
+    {
+      accept: 'text/html, application/xhtml+xml, */*'
+    }
+  end
+
+  def all_browsers
+    [chrome, firefox, safari, ie]
+  end
+end

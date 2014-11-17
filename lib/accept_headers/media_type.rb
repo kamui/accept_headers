@@ -76,7 +76,6 @@ module AcceptHeaders
       "#{type}/#{subtype}"
     end
 
-    private
     def match(media_range_string)
       match_data = MEDIA_TYPE_PATTERN.match(media_range_string)
       if !match_data

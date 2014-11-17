@@ -63,14 +63,20 @@ media_types.list
 ]
 ```
 
-`#negotiate` takes a string of media types supported (by your API or route/controller) and returns the best match as a `MediaType`. This will first check the available list for any matching media types with a `q` of 0 and return `nil` if there is a match. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns `nil`.
+`#negotiate` takes an array of media range strings supported (by your API or route/controller) and returns a hash where the `supported` key contains the array element matched and the `matched` key containing a `MediaType` that was matched in the `Negotiator`s internal list.
+
+This will first check the available list for any matching media types with a `q` of 0 and skip any matches. It does this because the RFC specifies that if the `q` value is 0, then content with this parameter is `not acceptable`. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns `nil`.
 
 ```ruby
-media_types.negotiate('text/html')
+# The same media_types variable as above
+media_types.negotiate(['text/html', 'text/plain'])
 
 # Returns:
 
-AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' })
+{
+  supported: 'text/html',
+  matched:    AcceptHeaders::MediaType.new('text', 'html', q: 1, params: { 'level' => '1' })
+}
 ```
 
 `#accept?`:
@@ -100,11 +106,14 @@ encodings.list
 `#negotiate`:
 
 ```ruby
-encodings.negotiate('gzip')
+encodings.negotiate(['gzip', 'compress'])
 
 # Returns:
 
-AcceptHeaders::Encoding.new('gzip')
+{
+  supported: 'gzip',
+  matched:    AcceptHeaders::Encoding.new('gzip'))
+}
 ```
 
 `#accept?`:
@@ -138,11 +147,14 @@ languages.list
 `#negotiate`:
 
 ```ruby
-languages.negotiate('en-us')
+languages.negotiate(['en-us', 'zh-Hant'])
 
 # Returns:
 
-AcceptHeaders::Language.new('en', 'us')
+{
+  supported: 'en-us',
+  matched:    AcceptHeaders::Language.new('en', 'us'))
+}
 ```
 
 `#accept?`:

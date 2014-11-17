@@ -62,7 +62,6 @@ module AcceptHeaders
       end
     end
 
-    private
     def match(language_tag_string)
       match_data = LANGUAGE_TAG_PATTERN.match(language_tag_string)
       if !match_data

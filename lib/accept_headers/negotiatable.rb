@@ -12,20 +12,18 @@ module AcceptHeaders
     end
 
     def negotiate(supported)
-      return nil if @list.empty?
+      return nil if list.empty?
       supported = [*supported]
-      rejects, acceptable = @list.partition { |m| m.q == 0.0 }
-      rejects.each do |reject|
+      # TODO: Maybe q=0 should be first by default when sorting
+      rejects, acceptable = list.partition { |m| m.q == 0.0 }
+      (rejects + acceptable).each do |part|
         supported.each do |support|
-          if reject.reject?(support)
-            return nil
-          end
-        end
-      end
-      acceptable.sort { |x,y| y <=> x }.each do |accepted|
-        supported.each do |support|
-          if accepted.accept?(support)
-            return accepted
+          if part.match(support)
+            if part.q == 0.0
+              next
+            else
+              return { supported: support, matched: part }
+            end
           end
         end
       end

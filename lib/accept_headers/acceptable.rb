@@ -36,7 +36,6 @@ module AcceptHeaders
       @q = q_float
     end
 
-    private
     def match(other)
       raise NotImplementedError.new("#match is not implemented")
     end

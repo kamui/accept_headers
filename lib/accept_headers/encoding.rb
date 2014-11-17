@@ -34,7 +34,6 @@ module AcceptHeaders
       "#{encoding};q=#{qvalue}"
     end
 
-    private
     def match(encoding_string)
       match_data = ENCODING_PATTERN.match(encoding_string)
       if !match_data
