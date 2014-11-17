@@ -96,13 +96,19 @@ media_types.list
   <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">0.3</span>)
 ]</pre></div>
 
-<p><code>#negotiate</code> takes a string of media types supported (by your API or route/controller) and returns the best match as a <code>MediaType</code>. This will first check the available list for any matching media types with a <code>q</code> of 0 and return <code>nil</code> if there is a match. Then it'll look to the highest <code>q</code> values and look for matches in descending <code>q</code> value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns <code>nil</code>.</p>
+<p><code>#negotiate</code> takes an array of media range strings supported (by your API or route/controller) and returns a hash where the <code>supported</code> key contains the array element matched and the <code>matched</code> key containing a <code>MediaType</code> that was matched in the <code>Negotiator</code>s internal list.</p>
 
-<div class="highlight highlight-ruby"><pre>media_types.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>)
+<p>This will first check the available list for any matching media types with a <code>q</code> of 0 and skip any matches. It does this because the RFC specifies that if the <code>q</code> value is 0, then content with this parameter is <code>not acceptable</code>. Then it'll look to the highest <code>q</code> values and look for matches in descending <code>q</code> value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns <code>nil</code>.</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c"><span class="pl-pdc">#</span> The same media_types variable as above</span>
+media_types.negotiate([<span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>text/plain<span class="pl-pds">'</span></span>])
 
 <span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>1<span class="pl-pds">'</span></span> })</pre></div>
+{
+  <span class="pl-cos">supported<span class="pl-pdc1">:</span></span> <span class="pl-s1"><span class="pl-pds">'</span>text/html<span class="pl-pds">'</span></span>,
+  <span class="pl-cos">matched<span class="pl-pdc1">:</span></span>    <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">MediaType</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>text<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>html<span class="pl-pds">'</span></span>, <span class="pl-cos">q<span class="pl-pdc1">:</span></span> <span class="pl-cn">1</span>, <span class="pl-cos">params<span class="pl-pdc1">:</span></span> { <span class="pl-s1"><span class="pl-pds">'</span>level<span class="pl-pds">'</span></span> =&gt; <span class="pl-s1"><span class="pl-pds">'</span>1<span class="pl-pds">'</span></span> })
+}</pre></div>
 
 <p><code>#accept?</code>:</p>
 
@@ -127,11 +133,14 @@ encodings.list
 
 <p><code>#negotiate</code>:</p>
 
-<div class="highlight highlight-ruby"><pre>encodings.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>)
+<div class="highlight highlight-ruby"><pre>encodings.negotiate([<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>compress<span class="pl-pds">'</span></span>])
 
 <span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>)</pre></div>
+{
+  <span class="pl-cos">supported<span class="pl-pdc1">:</span></span> <span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>,
+  <span class="pl-cos">matched<span class="pl-pdc1">:</span></span>    <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>gzip<span class="pl-pds">'</span></span>))
+}</pre></div>
 
 <p><code>#accept?</code>:</p>
 
@@ -160,11 +169,14 @@ languages.list
 
 <p><code>#negotiate</code>:</p>
 
-<div class="highlight highlight-ruby"><pre>languages.negotiate(<span class="pl-s1"><span class="pl-pds">'</span>en-us<span class="pl-pds">'</span></span>)
+<div class="highlight highlight-ruby"><pre>languages.negotiate([<span class="pl-s1"><span class="pl-pds">'</span>en-us<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>zh-Hant<span class="pl-pds">'</span></span>])
 
 <span class="pl-c"><span class="pl-pdc">#</span> Returns:</span>
 
-<span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>us<span class="pl-pds">'</span></span>)</pre></div>
+{
+  <span class="pl-cos">supported<span class="pl-pdc1">:</span></span> <span class="pl-s1"><span class="pl-pds">'</span>en-us<span class="pl-pds">'</span></span>,
+  <span class="pl-cos">matched<span class="pl-pdc1">:</span></span>    <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Language</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">'</span>en<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>us<span class="pl-pds">'</span></span>))
+}</pre></div>
 
 <p><code>#accept?</code>:</p>
 
