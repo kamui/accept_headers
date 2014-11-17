@@ -1,36 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Accept headers by kamui</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="javascripts/scale.fix.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <title>Accept headers by kamui</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1 class="header">Accept headers</h1>
-        <p class="header">A ruby library that does content negotiation and parses and sorts http accept headers</p>
+    <div id="container">
+      <div class="inner">
 
-        <ul>
-          <li class="download"><a class="buttons" href="https://github.com/kamui/accept_headers/zipball/master">Download ZIP</a></li>
-          <li class="download"><a class="buttons" href="https://github.com/kamui/accept_headers/tarball/master">Download TAR</a></li>
-          <li><a class="buttons github" href="https://github.com/kamui/accept_headers">View On GitHub</a></li>
-        </ul>
+        <header>
+          <h1>Accept headers</h1>
+          <h2>A ruby library that does content negotiation and parses and sorts http accept headers</h2>
+        </header>
 
-        <p class="header">This project is maintained by <a class="header name" href="https://github.com/kamui">kamui</a></p>
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/kamui/accept_headers/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/kamui/accept_headers/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/kamui/accept_headers" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
 
+        <hr>
 
-      </header>
-      <section>
-        <p><a href="https://travis-ci.org/kamui/accept_headers"><img src="https://travis-ci.org/kamui/accept_headers.png" alt="Build Status"></a>
+        <section id="main_content">
+          <p><a href="https://travis-ci.org/kamui/accept_headers"><img src="https://travis-ci.org/kamui/accept_headers.png" alt="Build Status"></a>
 <a href="https://codeclimate.com/github/kamui/accept_headers"><img src="https://codeclimate.com/github/kamui/accept_headers/badges/gpa.svg" alt="Code Climate"></a>
 <a href="https://codeclimate.com/github/kamui/accept_headers"><img src="https://codeclimate.com/github/kamui/accept_headers/badges/coverage.svg" alt="Test Coverage"></a></p>
 
@@ -54,7 +55,7 @@ and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4">Acc
 <li>A comprehensive <a href="http://github.com/kamui/accept_headers/tree/master/spec/">spec suite</a> that covers many edge cases</li>
 </ul>
 
-<p>This library is optimistic when parsing headers. If a specific media type, encoding, charset, or language can't be parsed, is in an invalid format, or contains invalid characters, it will skip that specific entry when constructing the sorted list. If a <code>q</code> value can't be read or is in the wrong format (more than 3 decimal places), it will default it to <code>0.001</code> so it still has a chance to match. Lack of an explicit <code>q</code> value of course defaults to 1.</p>
+<p>This library is optimistic when parsing headers. If a specific media type, encoding, or language can't be parsed, is in an invalid format, or contains invalid characters, it will skip that specific entry when constructing the sorted list. If a <code>q</code> value can't be read or is in the wrong format (more than 3 decimal places), it will default it to <code>0.001</code> so it still has a chance to match. Lack of an explicit <code>q</code> value of course defaults to 1.</p>
 
 <h2>
 <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
@@ -110,7 +111,7 @@ media_types.list
 <h3>
 <a id="accept-encoding" class="anchor" href="#accept-encoding" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accept-Encoding</h3>
 
-<p><code>AcceptHeader::Charset::Encoding</code>:</p>
+<p><code>AcceptHeader::Encoding::Encoding</code>:</p>
 
 <div class="highlight highlight-ruby"><pre>encodings <span class="pl-ko">=</span> <span class="pl-sc">AcceptHeaders</span>::<span class="pl-sc">Encoding</span>::<span class="pl-sc">Negotiator</span>.<span class="pl-kos">new</span>(<span class="pl-s1"><span class="pl-pds">"</span>deflate; q=0.5, gzip, compress; q=0.8, identity<span class="pl-pds">"</span></span>)
 
@@ -188,13 +189,14 @@ languages.list
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create a new Pull Request</li>
 </ol>
-      </section>
-      <footer>
-        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
-      </footer>
-    </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		          <script type="text/javascript">
+        </section>
+
+        <footer>
+          Accept headers is maintained by <a href="https://github.com/kamui">kamui</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+                  <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -205,5 +207,7 @@ languages.list
             } catch(err) {}
           </script>
 
+      </div>
+    </div>
   </body>
 </html>
