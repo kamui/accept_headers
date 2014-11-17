@@ -15,7 +15,7 @@ Some features of the library are:
   * Parser tested against all IANA registered [media types][iana-media-types]
   * A comprehensive [spec suite][spec] that covers many edge cases
 
-This library is optimistic when parsing headers. If a specific media type, encoding, charset, or language can't be parsed, is in an invalid format, or contains invalid characters, it will skip that specific entry when constructing the sorted list. If a `q` value can't be read or is in the wrong format (more than 3 decimal places), it will default it to `0.001` so it still has a chance to match. Lack of an explicit `q` value of course defaults to 1.
+This library is optimistic when parsing headers. If a specific media type, encoding, or language can't be parsed, is in an invalid format, or contains invalid characters, it will skip that specific entry when constructing the sorted list. If a `q` value can't be read or is in the wrong format (more than 3 decimal places), it will default it to `0.001` so it still has a chance to match. Lack of an explicit `q` value of course defaults to 1.
 
 [rfc]: http://www.w3.org/Protocols/rfc2616/rfc2616.html
 [rfc-sec14]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
@@ -81,7 +81,7 @@ media_types.accept?('text/html') # true
 
 ### Accept-Encoding
 
-`AcceptHeader::Charset::Encoding`:
+`AcceptHeader::Encoding::Encoding`:
 
 ```ruby
 encodings = AcceptHeaders::Encoding::Negotiator.new("deflate; q=0.5, gzip, compress; q=0.8, identity")
