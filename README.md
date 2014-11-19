@@ -46,7 +46,7 @@ Or install it yourself as:
 
 ### Accept
 
-`AcceptHeaders::MediaType::Negotiator` is a class that is initialized with an `Accept` header string and will internally store an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
+`AcceptHeaders::MediaType::Negotiator` is a class that is initialized with an `Accept` header string and will internally store an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `extensions` specificity.
 
 ```ruby
 accept_header = 'Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5'
@@ -57,10 +57,10 @@ media_types.list
 # Returns:
 
 [
-  AcceptHeaders::MediaType.new('text', 'html', params: { 'level' => '1' }),
+  AcceptHeaders::MediaType.new('text', 'html', extensions: { 'level' => '1' }),
   AcceptHeaders::MediaType.new('text', 'html', q: 0.7),
   AcceptHeaders::MediaType.new('*', '*', q: 0.5),
-  AcceptHeaders::MediaType.new('text', 'html', q: 0.4, params: { 'level' => '2' }),
+  AcceptHeaders::MediaType.new('text', 'html', q: 0.4, extensions: { 'level' => '2' }),
   AcceptHeaders::MediaType.new('text', '*', q: 0.3)
 ]
 ```
@@ -77,8 +77,18 @@ media_types.negotiate(['text/html', 'text/plain'])
 
 {
   supported: 'text/html',
-  matched:    AcceptHeaders::MediaType.new('text', 'html', q: 1, params: { 'level' => '1' })
+  matched:    AcceptHeaders::MediaType.new('text', 'html', q: 1, extensions: { 'level' => '1' })
 }
+```
+
+It returns the matching `MediaType`, so you can see which one matched and also access the `extensions` params. For example, if you wanted to put your API version in the extensions, you could then retrieve the value.
+
+```ruby
+versions_header = 'Accept: application/json;version=2,application/json;version=1;q=0.8'
+media_types = AcceptHeaders::MediaType::Negotiator.new(versions_header)
+
+m = media_types.negotiate('application/json')
+puts m[:match].extensions['version'] # returns '2'
 ```
 
 `#accept?`:

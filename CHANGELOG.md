@@ -1,5 +1,6 @@
 ## HEAD
 
+  * Rename `MediaType` `params` to `extensions`, since params technically includes the `q` value.
   * Support rbx invalid `Float` exception message.
   * Only strip accept param keys, values can contain white space if quoted.
 

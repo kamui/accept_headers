@@ -18,17 +18,17 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
 
       subject.new("text/*, text/html, text/html;level=1, */*").list.must_equal [
-        media_type.new('text', 'html', params: { 'level' => '1' }),
+        media_type.new('text', 'html', extensions: { 'level' => '1' }),
         media_type.new('text', 'html'),
         media_type.new('text', '*'),
         media_type.new('*', '*')
       ]
 
       subject.new("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5").list.must_equal [
-        media_type.new('text', 'html', params: { 'level' => '1' }),
+        media_type.new('text', 'html', extensions: { 'level' => '1' }),
         media_type.new('text', 'html', q: 0.7),
         media_type.new('*', '*', q: 0.5),
-        media_type.new('text', 'html', q: 0.4, params: { 'level' => '2' }),
+        media_type.new('text', 'html', q: 0.4, extensions: { 'level' => '2' }),
         media_type.new('text', '*', q: 0.3)
       ]
     end
@@ -79,10 +79,10 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
     end
 
-    it "strips whitespace around q and params" do
+    it "strips whitespace around q and extensions" do
       subject.new("text/plain;\tq\r=\n1, application/json;q=0.8;\slevel\t\t=\r\n1\n").list.must_equal [
         media_type.new('text', 'plain'),
-        media_type.new('application', 'json', q: 0.8, params: { "level" => "1" })
+        media_type.new('application', 'json', q: 0.8, extensions: { "level" => "1" })
       ]
     end
 
@@ -92,10 +92,10 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
     end
 
-    it "parses params with quoted values" do
+    it "parses extensions with quoted values" do
       subject.new('text/html;q=1;version="2";level="a;b;cc\'cd", text/html;version=\'1\';level=\'\blah;x;1;;\'').list.must_equal [
-        media_type.new('text', 'html', params: { 'version' => '2', 'level' => 'a;b;cc\'cd'}),
-        media_type.new('text', 'html', params: { 'version' => '1', 'level' => '\'\blah;x;1;;\''})
+        media_type.new('text', 'html', extensions: { 'version' => '2', 'level' => 'a;b;cc\'cd'}),
+        media_type.new('text', 'html', extensions: { 'version' => '1', 'level' => '\'\blah;x;1;;\''})
       ]
     end
 
@@ -146,7 +146,7 @@ describe AcceptHeaders::MediaType::Negotiator do
       api.negotiate('application/xml').must_be_nil
       api.negotiate(['application/xml', 'application/json']).must_equal({
         supported: 'application/json',
-        matched: media_type.new('application', 'json', params: { 'version' => '2' })
+        matched: media_type.new('application', 'json', extensions: { 'version' => '2' })
       })
 
       q0 = subject.new('application/json,application/xml;q=0')

@@ -5,15 +5,15 @@ module AcceptHeaders
     include Comparable
     include Acceptable
 
-    attr_reader :type, :subtype, :params
+    attr_reader :type, :subtype, :extensions
 
     MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
 
-    def initialize(type = '*', subtype = '*', q: 1.0, params: {})
+    def initialize(type = '*', subtype = '*', q: 1.0, extensions: {})
       self.type = type
       self.subtype = subtype
       self.q = q
-      self.params = params
+      self.extensions = extensions
     end
 
     def <=>(other)
@@ -25,9 +25,9 @@ module AcceptHeaders
         -1
       elsif (type != '*' && other.type == '*') || (subtype != '*' && other.subtype == '*')
         1
-      elsif params.size < other.params.size
+      elsif extensions.size < other.extensions.size
         -1
-      elsif params.size > other.params.size
+      elsif extensions.size > other.extensions.size
         1
       else
         0
@@ -46,12 +46,12 @@ module AcceptHeaders
       end
     end
 
-    def params=(hash)
-      @params = {}
+    def extensions=(hash)
+      @extensions = {}
       hash.each do |k,v|
-        @params[k.strip] = v
+        @extensions[k.strip] = v
       end
-      @params
+      @extensions
     end
 
     def to_h
@@ -59,15 +59,15 @@ module AcceptHeaders
         type: type,
         subtype: subtype,
         q: q,
-        params: params
+        extensions: extensions
       }
     end
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
       string = "#{media_range};q=#{qvalue}"
-      if params.size > 0
-        params.each { |k, v| string.concat(";#{k}=#{v}") }
+      if extensions.size > 0
+        extensions.each { |k, v| string.concat(";#{k}=#{v}") }
       end
       string
     end

@@ -25,16 +25,16 @@ describe AcceptHeaders::MediaType do
     subject.new('*', nil).subtype.must_equal '*'
   end
 
-  it "strips only the keys in the params hash" do
-    subject.new('*', '*', params: { "\s\nLEVEL\r\t" => "\t\nX\s\n"}).params['LEVEL'].must_equal "\t\nX\s\n"
+  it "strips only the keys in the extensions hash" do
+    subject.new('*', '*', extensions: { "\s\nLEVEL\r\t" => "\t\nX\s\n"}).extensions['LEVEL'].must_equal "\t\nX\s\n"
   end
 
   it "optionally supports a q argument" do
     subject.new('text', 'html', q: 0.8).q.must_equal 0.8
   end
 
-  it "optionally supports a params argument" do
-    subject.new('text', 'html', params: { 'level' => '1' }).params['level'].must_equal '1'
+  it "optionally supports a extensions argument" do
+    subject.new('text', 'html', extensions: { 'level' => '1' }).extensions['level'].must_equal '1'
   end
 
   it "compares on q value all other values remaining equal" do
@@ -86,17 +86,17 @@ describe AcceptHeaders::MediaType do
       type: 'text',
       subtype: 'html',
       q: 1.0,
-      params: {}
+      extensions: {}
     })
   end
 
   it "converts to string" do
-    s = subject.new('text', 'html', q: 0.9, params: { 'level' => '1' }).to_s
+    s = subject.new('text', 'html', q: 0.9, extensions: { 'level' => '1' }).to_s
     s.must_equal "text/html;q=0.9;level=1"
   end
 
   it "outputs the media range" do
-    subject.new('text', 'html', params: { 'level' => '1' }).media_range.must_equal "text/html"
+    subject.new('text', 'html', extensions: { 'level' => '1' }).media_range.must_equal "text/html"
   end
 
   describe "#accept?" do
