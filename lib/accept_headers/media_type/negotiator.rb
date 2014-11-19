@@ -6,9 +6,9 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      private
       PARAM_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
 
+      private
       def parse(original_header)
         header = original_header.dup
         header.sub!(/\AAccept:\s*/, '')
