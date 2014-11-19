@@ -48,7 +48,8 @@ Or install it yourself as:
 `AcceptHeaders::MediaType::Negotiator` is a class that is initialized with an `Accept` header string and will internally store an array of `MediaType`s in descending order according to the spec, which takes into account `q` value, `type`/`subtype` and `params` specificity.
 
 ```ruby
-media_types = AcceptHeaders::MediaType::Negotiator.new("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
+accept_header = 'Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5'
+media_types = AcceptHeaders::MediaType::Negotiator.new(accept_header)
 
 media_types.list
 
@@ -90,7 +91,8 @@ media_types.accept?('text/html') # true
 `AcceptHeader::Encoding::Encoding`:
 
 ```ruby
-encodings = AcceptHeaders::Encoding::Negotiator.new("deflate; q=0.5, gzip, compress; q=0.8, identity")
+accept_encoding = 'Accept-Encoding: deflate; q=0.5, gzip, compress; q=0.8, identity'
+encodings = AcceptHeaders::Encoding::Negotiator.new(accept_encoding)
 
 encodings.list
 
@@ -131,7 +133,8 @@ encodings.accept?('identity') # true
 `Accept::Language::Negotiator`:
 
 ```ruby
-languages = AcceptHeaders::Language::Negotiator.new("en-*, en-us, *;q=0.8")
+accept_language = 'Accept-Language: en-*, en-us, *;q=0.8'
+languages = AcceptHeaders::Language::Negotiator.new(accept_language)
 
 languages.list
 
