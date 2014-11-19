@@ -29,7 +29,7 @@ module AcceptHeaders
         subject.new('gzip', q: 'a')
       end.must_raise Encoding::InvalidQError
 
-      e.message.must_equal 'invalid value for Float(): "a"'
+      e.message.must_match INVALID_FLOAT_PATTERN
 
       subject.new('gzip', q: '1')
     end

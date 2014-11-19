@@ -20,6 +20,8 @@ require "pry"
 
 require_relative "../lib/accept_headers"
 
+INVALID_FLOAT_PATTERN = /\Ainvalid \w+ for Float(?:\(\)\: |\z)/
+
 class Minitest::Spec
   def chrome
     {

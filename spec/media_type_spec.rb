@@ -54,7 +54,7 @@ module AcceptHeaders
         subject.new('text', 'html', q: 'a')
       end.must_raise MediaType::InvalidQError
 
-      e.message.must_equal 'invalid value for Float(): "a"'
+      e.message.must_match INVALID_FLOAT_PATTERN
 
       subject.new('text', 'html', q: '1')
     end
