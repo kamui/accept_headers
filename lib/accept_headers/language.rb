@@ -5,7 +5,7 @@ module AcceptHeaders
     include Comparable
     include Acceptable
 
-    attr_reader :primary_tag, :subtag, :params
+    attr_reader :primary_tag, :subtag
 
     LANGUAGE_TAG_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
 
