@@ -26,8 +26,8 @@ module AcceptHeaders
       subject.new('*', nil).subtype.must_equal '*'
     end
 
-    it "strips the keys and values in the params hash" do
-      subject.new('*', '*', params: { "\s\nLEVEL\r\t" => "\t\nX\s\n"}).params['LEVEL'].must_equal 'X'
+    it "strips only the keys in the params hash" do
+      subject.new('*', '*', params: { "\s\nLEVEL\r\t" => "\t\nX\s\n"}).params['LEVEL'].must_equal "\t\nX\s\n"
     end
 
     it "optionally supports a q argument" do

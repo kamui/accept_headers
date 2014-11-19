@@ -49,7 +49,7 @@ module AcceptHeaders
     def params=(hash)
       @params = {}
       hash.each do |k,v|
-        @params[k.strip] = v.strip
+        @params[k.strip] = v
       end
       @params
     end

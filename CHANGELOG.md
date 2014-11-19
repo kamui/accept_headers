@@ -1,5 +1,7 @@
 ## HEAD
 
+  * Only strip accept param keys, values can contains white space if quoted.
+
 ## 0.0.6 / November 17, 2014
 
   * Support parsing params with quoted values.
