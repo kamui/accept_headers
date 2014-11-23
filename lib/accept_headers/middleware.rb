@@ -4,6 +4,7 @@ module AcceptHeaders
   class Middleware
     def initialize(app)
       @app = app
+      yield self if block_given?
     end
 
     def call(env)

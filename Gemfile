@@ -13,4 +13,5 @@ end
 group :development, :test do
   gem "pry"
   gem "awesome_print"
+  gem "rack-test"
 end

@@ -1,5 +1,7 @@
 ## HEAD
 
+  * First attempt at rack middleware with simple specs.
+
 ## 0.0.8 / November 23, 2014
 
   * Change `#negotiate` to return the type instead of a hash. In the case of `MediaType` it'll also populate `extensions` from the matching accept header media type.
