@@ -168,11 +168,50 @@ AcceptHeaders::Language.new('en', 'us')
 languages.accept?('en-gb') # true
 ```
 
-## TODO
+## Rack Middleware
 
-* Write rack middleware
-* More edge case tests
-* Add rdoc
+Add the middleware:
+
+```ruby
+require 'accept_headers/middleware'
+use AcceptHeaders::Middleware
+run YourApp
+```
+
+Simple way to set the content response headers based on the request accept headers and the supported media types, encodings, and languages provided by the app or route.
+
+```ruby
+class YourApp
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    # List your arrays of supported media types, encodings, languages. This can be global or per route/controller
+    supported_media_types = %w[application/json application/xml text/html text/plain]
+    supported_encodings = %w[gzip identify]
+    supported_languages = %w[en-US en-GB]
+
+    # Call the Negotiators and pass in the supported arrays and it'll return the best match
+    matched_media_type = env["accept_headers.media_types"].negotiate(supported_media_types)
+    matched_encoding = env["accept_headers.encodings"].negotiate(supported_encodings)
+    matched_language = env["accept_headers.languages"].negotiate(supported_languages)
+
+    # Set a default, in this case an empty string, in case of a bad header that cannot be parsed
+    # The return value is a MediaType, Encoding, or Language depending on the case:
+    # On MediaType, you can call #type ('text'), #subtype ('html'), #media_range ('text/html') to get the stringified parts
+    # On Encoding, you can call #encoding to get the string encoding ('gzip')
+    # On Language, you can call #primary_tag ('en'), #subtag ('us'), or #language_tag ('en-us')
+    headers = {
+      'Content-Type' => matched_media_type ? matched_media_type.media_range : '',
+      'Content-Encoding' => matched_encoding ? matched_encoding.encoding : '',
+      'Content-Language' => matched_language ? matched_language.language_tag : '',
+    }
+
+    [200, headers, ["Hello World!"]]
+  end
+end
+```
 
 ## Contributing
 
