@@ -5,6 +5,8 @@ module AcceptHeaders
 
     attr_reader :list
 
+    Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
+
     def initialize(header)
       @list = parse(header)
     end
@@ -33,8 +35,44 @@ module AcceptHeaders
     end
 
     private
-    def parse(header)
-      raise NotImplementedError.new("#parse(header) is not implemented")
+    def no_header
+      raise NotImplementedError.new("#no_header is not implemented")
+    end
+
+    def parse_item(entry)
+      raise NotImplementedError.new("#parse_item(entry) is not implemented")
+    end
+
+    def parse(header, &block)
+      header = header.dup
+      header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/, '')
+      header.strip!
+      return no_header if header.empty?
+      list = []
+      header.split(',').each do |entry|
+        begin
+          item = parse_item(entry)
+          next if item.nil?
+          list << item
+        rescue Error
+          next
+        end
+      end
+      list.sort! { |x,y| y <=> x }
+    end
+
+    def parse_q(header)
+      q = 1
+      return q unless header
+      q_match = Q_PATTERN.match(header)
+      if q_match && q_match[:exists]
+        if q_match[:q]
+          q = q_match[:q]
+        else
+          q = 0.001
+        end
+      end
+      q
     end
   end
 end

@@ -7,8 +7,6 @@ module AcceptHeaders
 
     attr_reader :encoding
 
-    ENCODING_PATTERN = /^\s*(?<encoding>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*$/
-
     def initialize(encoding = '*', q: 1.0)
       self.encoding = encoding
       self.q = q
@@ -35,7 +33,7 @@ module AcceptHeaders
     end
 
     def match(encoding_string)
-      match_data = ENCODING_PATTERN.match(encoding_string)
+      match_data = Negotiator::ENCODING_PATTERN.match(encoding_string)
       if !match_data
         false
       elsif encoding == match_data[:encoding]
@@ -47,16 +45,6 @@ module AcceptHeaders
       else
         false
       end
-    end
-
-    def self.parse(header)
-      return nil if header.nil?
-      header.strip!
-      encoding_string, q_string = header.split(';', 2)
-      raise Error if encoding_string.nil?
-      encoding = ENCODING_PATTERN.match(encoding_string)
-      raise Error if encoding.nil?
-      Encoding.new(encoding[:encoding], q: parse_q(q_string))
     end
   end
 end

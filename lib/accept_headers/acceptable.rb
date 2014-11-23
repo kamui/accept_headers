@@ -5,12 +5,6 @@ module AcceptHeaders
 
     attr_reader :q
 
-    Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
-
-    def self.included(base)
-      base.extend ClassMethods
-    end
-
     def reject?(other)
       if q != 0.0
         false
@@ -44,23 +38,6 @@ module AcceptHeaders
 
     def match(other)
       raise NotImplementedError.new("#match is not implemented")
-    end
-
-    module ClassMethods
-      private
-      def parse_q(header)
-        q = 1
-        return q unless header
-        q_match = Q_PATTERN.match(header)
-        if q_match && q_match[:exists]
-          if q_match[:q]
-            q = q_match[:q]
-          else
-            q = 0.001
-          end
-        end
-        q
-      end
     end
   end
 end

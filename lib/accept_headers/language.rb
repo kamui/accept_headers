@@ -7,8 +7,6 @@ module AcceptHeaders
 
     attr_reader :primary_tag, :subtag
 
-    LANGUAGE_TAG_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
-
     def initialize(primary_tag = '*', subtag = nil, q: 1.0)
       self.primary_tag = primary_tag
       self.subtag = subtag
@@ -63,7 +61,7 @@ module AcceptHeaders
     end
 
     def match(language_tag_string)
-      match_data = LANGUAGE_TAG_PATTERN.match(language_tag_string)
+      match_data = Negotiator::LANGUAGE_TAG_PATTERN.match(language_tag_string)
       if !match_data
         false
       elsif primary_tag == match_data[:primary_tag] && subtag == match_data[:subtag]
@@ -75,20 +73,6 @@ module AcceptHeaders
       else
         false
       end
-    end
-
-    def self.parse(header)
-      return nil if header.nil?
-      header.strip!
-      language_string, q_string = header.split(';', 2)
-      raise Error if language_string.nil?
-      language_range = LANGUAGE_TAG_PATTERN.match(language_string)
-      raise Error if language_range.nil?
-      Language.new(
-        language_range[:primary_tag],
-        language_range[:subtag],
-        q: parse_q(q_string)
-      )
     end
   end
 end

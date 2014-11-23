@@ -6,11 +6,15 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
+      MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
+      PARAMS_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
+      HEADER_PREFIX = 'Accept:'
+
       def negotiate(supported)
         support, match = super(supported)
         return nil if support.nil? && match.nil?
         begin
-          media_type = MediaType.parse(support)
+          media_type = parse(support).first
           media_type.extensions = match.extensions
           return media_type
         rescue MediaType::Error
@@ -19,22 +23,38 @@ module AcceptHeaders
       end
 
       private
-      def parse(original_header)
-        header = original_header.dup
-        header.sub!(/\AAccept:\s*/, '')
+      def no_header
+        [MediaType.new]
+      end
+
+      def parse_item(header)
+        return nil if header.nil?
         header.strip!
-        return [MediaType.new] if header.empty?
-        media_types = []
-        header.split(',').each do |entry|
-          begin
-            media_type = MediaType.parse(entry)
-            next if media_type.nil?
-            media_types << media_type
-          rescue MediaType::Error
-            next
+        accept_media_range, accept_extensions = header.split(';', 2)
+        raise Error if accept_media_range.nil?
+        media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
+        raise Error if media_range.nil?
+        MediaType.new(
+          media_range[:type],
+          media_range[:subtype],
+          q: parse_q(accept_extensions),
+          extensions: parse_extensions(accept_extensions)
+        )
+      end
+
+      def parse_extensions(extensions_string)
+        return {} if !extensions_string || extensions_string.empty?
+        if extensions_string.match(/['"]/)
+          extensions = extensions_string.scan(PARAMS_PATTERN).map(&:compact).to_h
+        else
+          extensions = {}
+          extensions_string.split(';').each do |part|
+            param = PARAMS_PATTERN.match(part)
+            extensions[param[:attribute]] = param[:value] if param
           end
         end
-        media_types.sort! { |x,y| y <=> x }
+        extensions.delete('q')
+        extensions
       end
     end
   end
