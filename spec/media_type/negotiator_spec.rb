@@ -106,6 +106,12 @@ describe AcceptHeaders::MediaType::Negotiator do
     end
   end
 
+  describe "#to_s" do
+    it "returns a string of each media type #to_s joined by a comma" do
+      subject.new("text/html;level=1, text/plain;q=0.9").to_s.must_equal "text/html;q=1;level=1,text/plain;q=0.9"
+    end
+  end
+
   describe "#negotiate" do
     it "returns a best matching media type" do
       all_browsers.each do |browser|

@@ -69,6 +69,12 @@ describe AcceptHeaders::Language::Negotiator do
     end
   end
 
+  describe "#to_s" do
+    it "returns a string of each language #to_s joined by a comma" do
+      subject.new("en-us, en-gb;q=0.9").to_s.must_equal "en-us;q=1,en-gb;q=0.9"
+    end
+  end
+
   describe "negotiate supported languages" do
     it "returns a best matching language" do
       match = language.new('en', 'us')

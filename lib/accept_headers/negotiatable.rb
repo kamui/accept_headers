@@ -34,6 +34,10 @@ module AcceptHeaders
       negotiate(other) ? true : false
     end
 
+    def to_s
+      list.join(',')
+    end
+
     private
     def no_header
       raise NotImplementedError.new("#no_header is not implemented")

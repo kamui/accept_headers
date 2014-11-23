@@ -77,6 +77,12 @@ describe AcceptHeaders::Encoding::Negotiator do
     end
   end
 
+  describe "#to_s" do
+    it "returns a string of each encoding #to_s joined by a comma" do
+      subject.new("compress,gzip;q=0.9").to_s.must_equal "compress;q=1,gzip;q=0.9"
+    end
+  end
+
   describe "negotiate supported encodings" do
     it "returns a best matching encoding" do
       n = subject.new('deflate; q=0.5, gzip, compress; q=0.8, identity')
