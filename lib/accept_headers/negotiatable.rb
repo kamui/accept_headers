@@ -48,6 +48,7 @@ module AcceptHeaders
     end
 
     def parse(header, &block)
+      return no_header unless header
       header = header.dup
       header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/, '')
       header.strip!
