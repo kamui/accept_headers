@@ -76,5 +76,19 @@ module AcceptHeaders
         false
       end
     end
+
+    def self.parse(header)
+      return nil if header.nil?
+      header.strip!
+      language_string, q_string = header.split(';', 2)
+      raise Error if language_string.nil?
+      language_range = LANGUAGE_TAG_PATTERN.match(language_string)
+      raise Error if language_range.nil?
+      Language.new(
+        language_range[:primary_tag],
+        language_range[:subtag],
+        q: parse_q(q_string)
+      )
+    end
   end
 end

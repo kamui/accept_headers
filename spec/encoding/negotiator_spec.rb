@@ -80,10 +80,7 @@ describe AcceptHeaders::Encoding::Negotiator do
   describe "negotiate supported encodings" do
     it "returns a best matching encoding" do
       n = subject.new('deflate; q=0.5, gzip, compress; q=0.8, identity')
-      n.negotiate(['identity', 'deflate']).must_equal({
-        supported: 'identity',
-        matched: encoding.new('identity')
-      })
+      n.negotiate(['identity', 'deflate']).must_equal encoding.new('identity')
     end
   end
 end

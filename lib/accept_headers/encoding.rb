@@ -48,5 +48,15 @@ module AcceptHeaders
         false
       end
     end
+
+    def self.parse(header)
+      return nil if header.nil?
+      header.strip!
+      encoding_string, q_string = header.split(';', 2)
+      raise Error if encoding_string.nil?
+      encoding = ENCODING_PATTERN.match(encoding_string)
+      raise Error if encoding.nil?
+      Encoding.new(encoding[:encoding], q: parse_q(q_string))
+    end
   end
 end

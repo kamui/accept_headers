@@ -3,8 +3,6 @@ module AcceptHeaders
     class Error < StandardError; end
     class ParseError < Error; end
 
-    Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
-
     attr_reader :list
 
     def initialize(header)
@@ -22,7 +20,7 @@ module AcceptHeaders
             if part.q == 0.0
               next
             else
-              return { supported: support, matched: part }
+              return [support, part]
             end
           end
         end
@@ -37,20 +35,6 @@ module AcceptHeaders
     private
     def parse(header)
       raise NotImplementedError.new("#parse(header) is not implemented")
-    end
-
-    def parse_q(header)
-      q = 1
-      return q unless header
-      q_match = Q_PATTERN.match(header)
-      if q_match && q_match[:exists]
-        if q_match[:q]
-          q = q_match[:q]
-        else
-          q = 0.001
-        end
-      end
-      q
     end
   end
 end

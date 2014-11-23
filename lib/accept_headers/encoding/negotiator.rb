@@ -6,6 +6,16 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
+      def negotiate(supported)
+        support, match = super(supported)
+        return nil if support.nil? && match.nil?
+        begin
+          return Encoding.parse(support)
+        rescue Encoding::Error
+          return nil
+        end
+      end
+
       private
       def parse(original_header)
         header = original_header.dup
@@ -14,11 +24,13 @@ module AcceptHeaders
         return [Encoding.new] if header.empty?
         encodings = []
         header.split(',').each do |entry|
-          encoding_arr = entry.split(';', 2)
-          next if encoding_arr[0].nil?
-          encoding = Encoding::ENCODING_PATTERN.match(encoding_arr[0])
-          next if encoding.nil?
-          encodings << Encoding.new(encoding[:encoding], q: parse_q(encoding_arr[1]))
+          begin
+            encoding = Encoding.parse(entry)
+            next if encoding.nil?
+            encodings << encoding
+          rescue Encoding::Error
+            next
+          end
         end
         encodings.sort! { |x,y| y <=> x }
       end

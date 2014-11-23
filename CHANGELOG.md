@@ -1,5 +1,7 @@
 ## HEAD
 
+  * Change `#negotiate` to return the type instead of a hash. In the case of `MediaType` it'll also populate `extensions` from the matching accept header media type.
+
 ## 0.0.7 / November 19, 2014
 
   * Rename `MediaType` `params` to `extensions`, since params technically includes the `q` value.

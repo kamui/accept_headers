@@ -65,7 +65,7 @@ media_types.list
 ]
 ```
 
-`#negotiate` takes an array of media range strings supported (by your API or route/controller) and returns a hash where the `supported` key contains the array element matched and the `matched` key containing a `MediaType` that was matched in the `Negotiator`s internal list.
+`#negotiate` takes an array of media range strings supported (by your API or route/controller) and returns the best supported `MediaType` and the `extensions` params from the matching internal media type.
 
 This will first check the available list for any matching media types with a `q` of 0 and skip any matches. It does this because the RFC specifies that if the `q` value is 0, then content with this parameter is `not acceptable`. Then it'll look to the highest `q` values and look for matches in descending `q` value order and return the first match (accounting for wildcards). Finally, if there are no matches, it returns `nil`.
 
@@ -73,12 +73,9 @@ This will first check the available list for any matching media types with a `q`
 # The same media_types variable as above
 media_types.negotiate(['text/html', 'text/plain'])
 
-# Returns:
+# Returns this equivalent:
 
-{
-  supported: 'text/html',
-  matched:    AcceptHeaders::MediaType.new('text', 'html', q: 1, extensions: { 'level' => '1' })
-}
+AcceptHeader::MediaType.new('text', 'html', extensions: { 'level' => '1' })
 ```
 
 It returns the matching `MediaType`, so you can see which one matched and also access the `extensions` params. For example, if you wanted to put your API version in the extensions, you could then retrieve the value.
@@ -88,7 +85,7 @@ versions_header = 'Accept: application/json;version=2,application/json;version=1
 media_types = AcceptHeaders::MediaType::Negotiator.new(versions_header)
 
 m = media_types.negotiate('application/json')
-puts m[:match].extensions['version'] # returns '2'
+puts m.extensions['version'] # returns '2'
 ```
 
 `#accept?`:
@@ -121,12 +118,9 @@ encodings.list
 ```ruby
 encodings.negotiate(['gzip', 'compress'])
 
-# Returns:
+# Returns this equivalent:
 
-{
-  supported: 'gzip',
-  matched:    AcceptHeaders::Encoding.new('gzip'))
-}
+AcceptHeader::Encoding.new('gzip')
 ```
 
 `#accept?`:
@@ -163,12 +157,9 @@ languages.list
 ```ruby
 languages.negotiate(['en-us', 'zh-Hant'])
 
-# Returns:
+# Returns this equivalent:
 
-{
-  supported: 'en-us',
-  matched:    AcceptHeaders::Language.new('en', 'us'))
-}
+AcceptHeaders::Language.new('en', 'us')
 ```
 
 `#accept?`:

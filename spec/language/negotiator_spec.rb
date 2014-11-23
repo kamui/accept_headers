@@ -73,10 +73,7 @@ describe AcceptHeaders::Language::Negotiator do
     it "returns a best matching language" do
       match = language.new('en', 'us')
       n = subject.new('en-*, en-us, *;q=0.8')
-      n.negotiate('en-us').must_equal({
-        supported: 'en-us',
-        matched: match
-      })
+      n.negotiate('en-us').must_equal language.new('en', 'us')
     end
   end
 end

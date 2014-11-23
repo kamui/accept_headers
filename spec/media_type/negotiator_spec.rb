@@ -111,54 +111,57 @@ describe AcceptHeaders::MediaType::Negotiator do
       all_browsers.each do |browser|
         browser = subject.new(browser[:accept])
 
-        browser.negotiate('text/html').must_equal({
-          supported: 'text/html',
-          matched: media_type.new('text', 'html')
-        })
+        browser.negotiate('text/html').must_equal media_type.new(
+          'text',
+          'html'
+        )
 
-        browser.negotiate(['text/html', 'application/xhtml+xml']).must_equal({
-          supported: 'text/html',
-          matched: media_type.new('text', 'html')
-        })
+        browser.negotiate(['text/html', 'application/xhtml+xml']).must_equal media_type.new(
+          'text',
+          'html'
+        )
 
-        browser.negotiate(['application/xhtml+xml', 'application/json']).must_equal({
-          supported: 'application/xhtml+xml',
-          matched: media_type.new('application', 'xhtml+xml')
-        })
+        browser.negotiate(['application/xhtml+xml', 'application/json']).must_equal media_type.new(
+          'application',
+          'xhtml+xml'
+        )
       end
 
       [chrome, firefox, safari].each do| browser|
         browser = subject.new(browser[:accept])
 
-        browser.negotiate(['application/xml']).must_equal({
-          supported: 'application/xml',
-          matched: media_type.new('application', 'xml', q: 0.9)
-        })
+        browser.negotiate(['application/xml']).must_equal media_type.new(
+          'application',
+          'xml'
+        )
 
-        browser.negotiate(['application/json']).must_equal({
-          supported: 'application/json',
-          matched: media_type.new('*', '*', q: 0.8)
-        })
+        browser.negotiate(['application/json']).must_equal media_type.new(
+          'application',
+          'json'
+        )
       end
 
       api = subject.new('application/json;q=1;version=2,application/json;q=0.9;version=1')
       api.negotiate('text/html').must_be_nil
       api.negotiate('application/xml').must_be_nil
-      api.negotiate(['application/xml', 'application/json']).must_equal({
-        supported: 'application/json',
-        matched: media_type.new('application', 'json', extensions: { 'version' => '2' })
-      })
+      api.negotiate(['application/xml', 'application/json']).must_equal media_type.new(
+        'application',
+        'json',
+        extensions: {
+          'version' => '1'
+        }
+      )
 
       q0 = subject.new('application/json,application/xml;q=0')
-      q0.negotiate('application/json').must_equal({
-        supported: 'application/json',
-        matched: media_type.new('application', 'json')
-      })
+      q0.negotiate('application/json').must_equal media_type.new(
+        'application',
+        'json'
+      )
       q0.negotiate('application/xml').must_be_nil
-      q0.negotiate(['application/json', 'application/xml']).must_equal({
-        supported: 'application/json',
-        matched: media_type.new('application', 'json')
-      })
+      q0.negotiate(['application/json', 'application/xml']).must_equal media_type.new(
+        'application',
+        'json'
+      )
     end
 
     it "rejects matching q=0 even if it matches media ranges where q > 0" do

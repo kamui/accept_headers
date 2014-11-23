@@ -6,7 +6,17 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      PARAMS_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
+      def negotiate(supported)
+        support, match = super(supported)
+        return nil if support.nil? && match.nil?
+        begin
+          media_type = MediaType.parse(support)
+          media_type.extensions = match.extensions
+          return media_type
+        rescue MediaType::Error
+          return nil
+        end
+      end
 
       private
       def parse(original_header)
@@ -16,37 +26,15 @@ module AcceptHeaders
         return [MediaType.new] if header.empty?
         media_types = []
         header.split(',').each do |entry|
-          accept_media_range, accept_extensions = entry.split(';', 2)
-          next if accept_media_range.nil?
-          media_range = MediaType::MEDIA_TYPE_PATTERN.match(accept_media_range)
-          next if media_range.nil?
           begin
-            media_types << MediaType.new(
-              media_range[:type],
-              media_range[:subtype],
-              q: parse_q(accept_extensions),
-              extensions: parse_extensions(accept_extensions)
-            )
-          rescue Error
+            media_type = MediaType.parse(entry)
+            next if media_type.nil?
+            media_types << media_type
+          rescue MediaType::Error
             next
           end
         end
         media_types.sort! { |x,y| y <=> x }
-      end
-
-      def parse_extensions(extensions_string)
-        return {} if !extensions_string || extensions_string.empty?
-        if extensions_string.match(/['"]/)
-          extensions = extensions_string.scan(PARAMS_PATTERN).map(&:compact).to_h
-        else
-          extensions = {}
-          extensions_string.split(';').each do |part|
-            param = PARAMS_PATTERN.match(part)
-            extensions[param[:attribute]] = param[:value] if param
-          end
-        end
-        extensions.delete('q')
-        extensions
       end
     end
   end

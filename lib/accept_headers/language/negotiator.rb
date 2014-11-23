@@ -6,6 +6,16 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
+      def negotiate(supported)
+        support, match = super(supported)
+        return nil if support.nil? && match.nil?
+        begin
+          return Language.parse(support)
+        rescue Language::Error
+          return nil
+        end
+      end
+
       private
       def parse(original_header)
         header = original_header.dup
@@ -14,17 +24,11 @@ module AcceptHeaders
         return [Language.new] if header.empty?
         languages = []
         header.split(',').each do |entry|
-          language_arr = entry.split(';', 2)
-          next if language_arr[0].nil?
-          language_range = Language::LANGUAGE_TAG_PATTERN.match(language_arr[0])
-          next if language_range.nil?
           begin
-            languages << Language.new(
-              language_range[:primary_tag],
-              language_range[:subtag],
-              q: parse_q(language_arr[1])
-            )
-          rescue Error
+            language = Language.parse(entry)
+            next if language.nil?
+            languages << language
+          rescue Language::Error
             next
           end
         end
