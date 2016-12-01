@@ -1,5 +1,10 @@
 ## HEAD
 
+## 0.0.9 / December 1, 2016
+
+  * Require ruby 2.2 minimum.
+  * Add `#to_s` method for all Negotiators
+  * Return no header if parse header is nil
   * First attempt at rack middleware with simple specs.
 
 ## 0.0.8 / November 23, 2014
