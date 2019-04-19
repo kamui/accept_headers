@@ -1,5 +1,6 @@
 ## HEAD
 
+  * Require ruby 2.4 minimum.
   * Upgrade dev dependencies
 
 ## 0.0.9 / December 1, 2016
