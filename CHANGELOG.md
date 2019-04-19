@@ -1,5 +1,7 @@
 ## HEAD
 
+## 0.1.0 / April 19, 2019
+
   * Require ruby 2.4 minimum.
   * Upgrade dev dependencies
 
