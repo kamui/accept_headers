@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/kamui/accept_headers.png)](https://travis-ci.org/kamui/accept_headers)
+[![CI](https://github.com/kamui/accept_headers/actions/workflows/ci.yml/badge.svg)](https://github.com/kamui/accept_headers/actions/workflows/ci.yml)
 
 # AcceptHeaders
 
@@ -25,6 +25,8 @@ This library is optimistic when parsing headers. If a specific media type, encod
 [spec]: http://github.com/kamui/accept_headers/tree/master/spec/
 
 ## Installation
+
+CI covers the maintained Ruby series: 3.3, 3.4, and 4.0. Older Ruby versions remain allowed by the gem specification but are not tested.
 
 Add this line to your application's Gemfile:
 
