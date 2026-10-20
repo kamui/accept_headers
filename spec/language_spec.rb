@@ -91,6 +91,11 @@ describe AcceptHeaders::Language do
       subject.new('en', 'us', q: 0.9).language_tag.must_equal "en-us"
     end
 
+    it "outputs the primary tag alone when no subtag is given" do
+      subject.new('en').language_tag.must_equal 'en'
+      subject.new('en', '*').language_tag.must_equal 'en'
+    end
+
     it "if primary tag is * and subtag is * or nil, outputs *" do
       subject.new('*', nil).language_tag.must_equal '*'
       subject.new('*', '*').language_tag.must_equal '*'
@@ -117,6 +122,13 @@ describe AcceptHeaders::Language do
       a.accept?('en-us').must_equal true
       b = subject.new('*', q: 0.1)
       b.accept?('en-us').must_equal true
+    end
+
+    it "matches complete subtag prefixes case insensitively" do
+      a = subject.new('zh', 'hant')
+      a.accept?('ZH-Hant-TW').must_equal true
+      a.accept?('zh-Hans-TW').must_equal false
+      a.accept?('zh-Hantish').must_equal false
     end
 
     it "not accepted if the primary_tag and subtag don't match" do
@@ -156,8 +168,7 @@ describe AcceptHeaders::Language do
       a.accept?(nil).must_equal false
     end
 
-    # TODO: test *
-    it "not accepted if..." do
+    it "does not accept a wildcard as a concrete supported tag" do
       a = subject.new('en', 'us')
       a.accept?('*').must_equal false
     end
@@ -195,8 +206,7 @@ describe AcceptHeaders::Language do
         a.reject?('en-gb').must_equal false
       end
 
-      # TODO: test *
-      it "not rejected if..." do
+      it "does not reject a wildcard as a concrete supported tag" do
         a = subject.new('en', 'us', q: 0)
         a.reject?('*').must_equal false
       end

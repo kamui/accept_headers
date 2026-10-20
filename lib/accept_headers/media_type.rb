@@ -47,7 +47,7 @@ module AcceptHeaders
     def extensions=(hash)
       @extensions = {}
       hash.each do |k,v|
-        @extensions[k.strip] = v
+        @extensions[k.strip.downcase] = v
       end
       @extensions
     end
@@ -63,29 +63,42 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
-      string = "#{media_range};q=#{qvalue}"
+      string = media_range
       if extensions.size > 0
-        extensions.each { |k, v| string.concat(";#{k}=#{v}") }
+        extensions.each do |key, value|
+          value = value.to_s
+          unless /\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/.match(value)
+            value = '"' + value.gsub(/["\\]/) { |character| "\\#{character}" } + '"'
+          end
+          string.concat(";#{key}=#{value}")
+        end
       end
-      string
+      string.concat(";q=#{qvalue}")
     end
 
     def media_range
       "#{type}/#{subtype}"
     end
 
+    def specificity
+      [type == '*' ? 0 : 1, subtype == '*' ? 0 : 1, extensions.size]
+    end
+
     def match(media_range_string)
-      match_data = Negotiator::MEDIA_TYPE_PATTERN.match(media_range_string)
-      if !match_data
-        false
-      elsif type == match_data[:type] && subtype == match_data[:subtype]
-        true
-      elsif type == match_data[:type] && subtype == '*'
-        true
-      elsif type == '*' && subtype == '*'
-        true
-      else
-        false
+      return false if media_range_string.nil? || media_range_string.strip.empty?
+      candidates = Negotiator.new(media_range_string).list
+      return false unless candidates.size == 1
+      candidate = candidates.first
+      return false unless (type == '*' || type == candidate.type) &&
+        (subtype == '*' || subtype == candidate.subtype)
+
+      extensions.all? do |name, value|
+        supported_value = candidate.extensions[name]
+        if name == 'charset'
+          supported_value && value.casecmp?(supported_value)
+        else
+          value == supported_value
+        end
       end
     end
   end

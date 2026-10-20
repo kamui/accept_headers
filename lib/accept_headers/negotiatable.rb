@@ -5,29 +5,27 @@ module AcceptHeaders
 
     attr_reader :list
 
-    Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
+    Q_PATTERN = /\A[ \t]*q[ \t]*=[ \t]*(?<q>.*?)[ \t]*\z/im
+    QVALUE_PATTERN = /\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/
 
     def initialize(header)
+      header = header.b if header && !header.valid_encoding?
       @list = parse(header)
     end
 
     def negotiate(supported)
-      return nil if list.empty?
-      supported = [*supported]
-      # TODO: Maybe q=0 should be first by default when sorting
-      rejects, acceptable = list.partition { |m| m.q == 0.0 }
-      (rejects + acceptable).each do |part|
-        supported.each do |support|
-          if part.match(support)
-            if part.q == 0.0
-              next
-            else
-              return [support, part]
-            end
-          end
+      candidates = [*supported].each_with_index.map do |support, support_index|
+        matches = list.each_with_index.select { |part, _| part.match(support) }
+        part, header_index = matches.max_by do |match, _|
+          [match.specificity, match.q.zero? ? 1 : 0, match.q]
         end
+        next if part.nil? || part.q.zero?
+        [support, part, header_index, support_index]
+      end.compact
+      best = candidates.max_by do |_, part, header_index, support_index|
+        [part.q, part.specificity, -header_index, -support_index]
       end
-      nil
+      best && best.first(2)
     end
 
     def accept?(other)
@@ -50,11 +48,11 @@ module AcceptHeaders
     def parse(header, &block)
       return no_header unless header
       header = header.dup
-      header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/, '')
+      header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/i, '')
       header.strip!
-      return no_header if header.empty?
+      return [] if header.empty?
       list = []
-      header.split(',').each do |entry|
+      split_quoted(header, ',').each do |entry|
         begin
           item = parse_item(entry)
           next if item.nil?
@@ -64,20 +62,42 @@ module AcceptHeaders
         end
       end
       list.sort! { |x,y| y <=> x }
+    rescue ParseError
+      []
+    end
+
+    def split_quoted(value, delimiter)
+      parts = []
+      part = +""
+      quoted = false
+      escaped = false
+      value.each_char do |character|
+        if escaped
+          escaped = false
+        elsif quoted && character == "\\"
+          escaped = true
+        elsif character == '"'
+          quoted = !quoted
+        elsif !quoted && character == delimiter
+          parts << part
+          part = +""
+          next
+        end
+        part << character
+      end
+      raise ParseError if quoted || escaped
+      parts << part
     end
 
     def parse_q(header)
-      q = 1
-      return q unless header
-      q_match = Q_PATTERN.match(header)
-      if q_match && q_match[:exists]
-        if q_match[:q]
-          q = q_match[:q]
-        else
-          q = 0.001
-        end
+      return 1 unless header
+      split_quoted(header, ';').each do |parameter|
+        q_match = Q_PATTERN.match(parameter)
+        next unless q_match
+        value = q_match[:q]
+        return QVALUE_PATTERN.match(value) ? value.to_f : 0.001
       end
-      q
+      1
     end
   end
 end

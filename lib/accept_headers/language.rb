@@ -14,17 +14,7 @@ module AcceptHeaders
     end
 
     def <=>(other)
-      if q < other.q
-        -1
-      elsif q > other.q
-        1
-      elsif (primary_tag == '*' && other.primary_tag != '*') || (subtag == '*' && other.subtag != '*')
-        -1
-      elsif (primary_tag != '*' && other.primary_tag == '*') || (subtag != '*' && other.subtag == '*')
-        1
-      else
-        0
-      end
+      [q, specificity] <=> [other.q, other.specificity]
     end
 
     def primary_tag=(value)
@@ -53,26 +43,19 @@ module AcceptHeaders
     end
 
     def language_tag
-      if primary_tag == '*' && (subtag.nil? || subtag == '*')
-        '*'
-      else
-        "#{primary_tag}-#{subtag}"
-      end
+      subtag == '*' ? primary_tag : "#{primary_tag}-#{subtag}"
+    end
+
+    def specificity
+      [primary_tag == '*' ? 0 : language_tag.split('-').length]
     end
 
     def match(language_tag_string)
-      match_data = Negotiator::LANGUAGE_TAG_PATTERN.match(language_tag_string)
-      if !match_data
-        false
-      elsif primary_tag == match_data[:primary_tag] && subtag == match_data[:subtag]
-        true
-      elsif primary_tag == match_data[:primary_tag] && subtag == '*'
-        true
-      elsif primary_tag == '*'
-        true
-      else
-        false
-      end
+      return false unless language_tag_string.is_a?(String)
+      return false unless Negotiator::SUPPORTED_LANGUAGE_TAG_PATTERN.match?(language_tag_string)
+      candidate = language_tag_string.downcase
+      range = language_tag
+      range == '*' || candidate == range || candidate.start_with?("#{range}-")
     end
   end
 end

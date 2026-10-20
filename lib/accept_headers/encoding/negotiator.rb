@@ -6,20 +6,30 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      ENCODING_PATTERN = /^\s*(?<encoding>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*$/
+      ENCODING_PATTERN = /\A[ \t]*(?<encoding>[A-Za-z0-9!#$%&'*+.^_`|~\-]+)[ \t]*\z/
       HEADER_PREFIX = 'Accept-Encoding:'
 
       def negotiate(supported)
-        support, match = super(supported)
-        return nil if support.nil? && match.nil?
-        begin
-          return parse(support).first
-        rescue Encoding::Error
-          return nil
-        end
+        supported = [*supported]
+        identity = Encoding.new('identity')
+        explicit_identity = list.any? { |part| part.encoding == 'identity' }
+        candidates = explicit_identity ? supported : supported.reject { |support| identity.match(support) }
+        support, = super(candidates)
+        return Encoding.new(support) if support
+        return nil if explicit_identity || !supported.any? { |value| identity.match(value) }
+        return nil if list.any? { |part| part.encoding == '*' && part.q.zero? }
+        identity
       end
 
       private
+      def parse(header)
+        if header && header.sub(/\A#{HEADER_PREFIX}\s*/i, '').strip.empty?
+          [Encoding.new('identity')]
+        else
+          super
+        end
+      end
+
       def no_header
         [Encoding.new]
       end

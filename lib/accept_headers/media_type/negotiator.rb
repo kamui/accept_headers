@@ -6,20 +6,14 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
-      PARAMS_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
+      MEDIA_TYPE_PATTERN = /\A[ \t]*(?<type>[!#$%&'*+\-.^_`|~0-9A-Za-z]+)(?:\/(?<subtype>[!#$%&'*+\-.^_`|~0-9A-Za-z]+))?[ \t]*\z/
+      PARAMS_PATTERN = /\A\s*(?<attribute>[!#$%&'*+\-.^_`|~0-9A-Za-z]+)\s*=\s*(?<value>[!#$%&'*+\-.^_`|~0-9A-Za-z]+|"(?:[\t !#-\[\]-~\x80-\xFF]|\\[\t -~\x80-\xFF])*")\s*\z/n
       HEADER_PREFIX = 'Accept:'
 
       def negotiate(supported)
-        support, match = super(supported)
-        return nil if support.nil? && match.nil?
-        begin
-          media_type = parse(support).first
-          media_type.extensions = match.extensions
-          return media_type
-        rescue MediaType::Error
-          return nil
-        end
+        support, = super(supported)
+        return nil if support.nil?
+        parse(support).first
       end
 
       private
@@ -34,6 +28,8 @@ module AcceptHeaders
         raise Error if accept_media_range.nil?
         media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
         raise Error if media_range.nil?
+        raise Error if media_range[:subtype].nil? && media_range[:type] != '*'
+        raise Error if media_range[:type] == '*' && ![nil, '*'].include?(media_range[:subtype])
         MediaType.new(
           media_range[:type],
           media_range[:subtype],
@@ -44,16 +40,19 @@ module AcceptHeaders
 
       def parse_extensions(extensions_string)
         return {} if !extensions_string || extensions_string.empty?
-        if extensions_string.match(/['"]/)
-          extensions = extensions_string.scan(PARAMS_PATTERN).map(&:compact).to_h
-        else
-          extensions = {}
-          extensions_string.split(';').each do |part|
-            param = PARAMS_PATTERN.match(part)
-            extensions[param[:attribute]] = param[:value] if param
+        extensions = {}
+        split_quoted(extensions_string, ';').each do |part|
+          next if part.strip.empty?
+          name = part.split('=', 2).first.strip.downcase
+          next if name == 'q'
+          param = PARAMS_PATTERN.match(part.b)
+          raise ParseError unless param
+          value = param[:value].force_encoding(part.encoding)
+          if value.start_with?('"')
+            value = value[1...-1].gsub(/\\(.)/m, '\\1')
           end
+          extensions[param[:attribute].downcase] = value
         end
-        extensions.delete('q')
         extensions
       end
     end

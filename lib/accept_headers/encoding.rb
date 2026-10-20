@@ -27,6 +27,10 @@ module AcceptHeaders
       }
     end
 
+    def specificity
+      [encoding == '*' ? 0 : 1]
+    end
+
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
       "#{encoding};q=#{qvalue}"
@@ -36,9 +40,7 @@ module AcceptHeaders
       match_data = Negotiator::ENCODING_PATTERN.match(encoding_string)
       if !match_data
         false
-      elsif encoding == match_data[:encoding]
-        true
-      elsif match_data[:encoding] == 'identity'
+      elsif encoding == match_data[:encoding].downcase
         true
       elsif encoding == '*'
         true

@@ -5,6 +5,10 @@ module AcceptHeaders
 
     attr_reader :q
 
+    def ==(other)
+      other.instance_of?(self.class) && to_h == other.to_h
+    end
+
     def reject?(other)
       if q != 0.0
         false
@@ -38,6 +42,10 @@ module AcceptHeaders
 
     def match(other)
       raise NotImplementedError.new("#match is not implemented")
+    end
+
+    def specificity
+      raise NotImplementedError.new("#specificity is not implemented")
     end
   end
 end

@@ -6,7 +6,8 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      LANGUAGE_TAG_PATTERN = /^\s*(?<primary_tag>[\w]{1,8}|\*)(?:\s*\-\s*(?<subtag>[\w]{1,8}|\*))?\s*$/
+      LANGUAGE_TAG_PATTERN = /\A[ \t]*(?<primary_tag>[A-Za-z]{1,8}|\*)(?:-(?<subtag>[A-Za-z0-9]{1,8}(?:-[A-Za-z0-9]{1,8})*))?[ \t]*\z/
+      SUPPORTED_LANGUAGE_TAG_PATTERN = /\A[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\z/
       HEADER_PREFIX = 'Accept-Language:'
 
       def negotiate(supported)
@@ -30,7 +31,7 @@ module AcceptHeaders
         language_string, q_string = header.split(';', 2)
         raise Error if language_string.nil?
         language_range = LANGUAGE_TAG_PATTERN.match(language_string)
-        raise Error if language_range.nil?
+        raise Error if language_range.nil? || (language_range[:primary_tag] == '*' && language_range[:subtag])
         Language.new(
           language_range[:primary_tag],
           language_range[:subtag],

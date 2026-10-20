@@ -25,8 +25,8 @@ describe AcceptHeaders::MediaType do
     subject.new('*', nil).subtype.must_equal '*'
   end
 
-  it "strips only the keys in the extensions hash" do
-    subject.new('*', '*', extensions: { "\s\nLEVEL\r\t" => "\t\nX\s\n"}).extensions['LEVEL'].must_equal "\t\nX\s\n"
+  it "strips and downcases parameter names while preserving values" do
+    subject.new('*', '*', extensions: { "\s\nLEVEL\r\t" => "\t\nX\s\n"}).extensions['level'].must_equal "\t\nX\s\n"
   end
 
   it "optionally supports a q argument" do
@@ -92,7 +92,12 @@ describe AcceptHeaders::MediaType do
 
   it "converts to string" do
     s = subject.new('text', 'html', q: 0.9, extensions: { 'level' => '1' }).to_s
-    s.must_equal "text/html;q=0.9;level=1"
+    s.must_equal "text/html;level=1;q=0.9"
+  end
+
+  it "quotes parameter delimiters and escapes quotes and backslashes" do
+    value = subject.new('text', 'html', extensions: { 'note' => 'a,b;c"d\\e', 'empty' => '' })
+    value.to_s.must_equal 'text/html;note="a,b;c\\"d\\\\e";empty="";q=1'
   end
 
   it "outputs the media range" do
@@ -100,6 +105,37 @@ describe AcceptHeaders::MediaType do
   end
 
   describe "#accept?" do
+    it "matches type and subtype without case sensitivity" do
+      subject.new('text', 'html').accept?('TEXT/HTML').must_equal true
+    end
+
+    it "requires every media range parameter to match the supported representation" do
+      range = subject.new('application', 'json', extensions: { 'version' => '2' })
+      range.accept?('application/json').must_equal false
+      range.accept?('application/json;version=1').must_equal false
+      range.accept?('application/json;VERSION=2').must_equal true
+      range.accept?('application/json;version=2;profile=public').must_equal true
+    end
+
+    it "matches charset values without case sensitivity" do
+      range = subject.new('text', 'plain', extensions: { 'charset' => 'UTF-8' })
+      range.accept?('text/plain;charset=utf-8').must_equal true
+      range.accept?('text/plain;charset=iso-8859-1').must_equal false
+      range.accept?('text/plain').must_equal false
+    end
+
+    it "preserves case sensitivity for other parameter values" do
+      range = subject.new('application', 'json', extensions: { 'profile' => 'Public' })
+      range.accept?('application/json;profile=Public').must_equal true
+      range.accept?('application/json;profile=public').must_equal false
+    end
+
+    it "does not match an empty candidate or a list of candidates" do
+      range = subject.new('*')
+      range.accept?('').must_equal false
+      range.accept?('text/html,application/json').must_equal false
+    end
+
     it "accepted if the type and subtype are the same" do
       a = subject.new('text', 'html')
       a.accept?('text/html').must_equal true

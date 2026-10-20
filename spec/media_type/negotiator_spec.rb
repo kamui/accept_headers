@@ -34,12 +34,12 @@ describe AcceptHeaders::MediaType::Negotiator do
     end
 
     it "ignores the 'Accept:' prefix" do
-      subject.new('Accept: text/html').list.must_equal [
+      subject.new('aCcEpT: text/html').list.must_equal [
         media_type.new('text', 'html')
       ]
     end
 
-    it "supports all registered IANA media types" do
+    it "parses media types in the bundled IANA snapshot" do
       require 'csv'
       # https://www.iana.org/assignments/media-types/media-types.xhtml
       %w[application audio image message model multipart text video].each do |filename|
@@ -54,10 +54,8 @@ describe AcceptHeaders::MediaType::Negotiator do
       end
     end
 
-    it "sets media type to */* when the accept header is empty" do
-      subject.new('').list.must_equal [
-        media_type.new('*', '*')
-      ]
+    it "accepts no media types when the accept header is present but empty" do
+      assert_empty subject.new('').list
     end
 
     it "sets media type to */* when the type is only *" do
@@ -92,11 +90,47 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
     end
 
-    it "parses extensions with quoted values" do
-      subject.new('text/html;q=1;version="2";level="a;b;cc\'cd", text/html;version=\'1\';level=\'\blah;x;1;;\'').list.must_equal [
-        media_type.new('text', 'html', extensions: { 'version' => '2', 'level' => 'a;b;cc\'cd'}),
-        media_type.new('text', 'html', extensions: { 'version' => '1', 'level' => '\'\blah;x;1;;\''})
-      ]
+    it "preserves delimiters inside quoted parameter values" do
+      parsed = subject.new('text/html;version="2";level="a,b;c", application/json;q=0.8').list
+      parsed.map(&:media_range).must_equal ['text/html', 'application/json']
+      parsed.first.extensions.must_equal('version' => '2', 'level' => 'a,b;c')
+    end
+
+    it "unescapes quoted pairs without splitting escaped quotes" do
+      parsed = subject.new('text/html;note="a\\"b,c;d\\\\e"').list
+      parsed.size.must_equal 1
+      parsed.first.extensions.must_equal('note' => 'a"b,c;d\\e')
+    end
+
+    it "treats apostrophes as token characters rather than quotes" do
+      parsed = subject.new("text/html;version='1', application/json;q=0.8").list
+      parsed.map(&:media_range).must_equal ['text/html', 'application/json']
+      parsed.first.extensions.must_equal('version' => "'1'")
+    end
+
+    it "does not read quality values inside quoted parameters" do
+      parsed = subject.new('text/html;note="example;q=0.2";q=0.8').list.first
+      parsed.q.must_equal 0.8
+      parsed.extensions.must_equal('note' => 'example;q=0.2')
+    end
+
+    it "does not invent parameters from malformed values" do
+      ['text/html;note="unterminated', 'text/html;note="trailing' + "\\",
+       'text/html;note="closed"junk', "text/html;note=\"line\nbreak\"",
+       "text/html;note=\"escaped\\\nbreak\"", 'text/html;note=two words'].each do |header|
+        subject.new(header).list.must_equal []
+      end
+      parsed = subject.new('text/html;note="closed"junk, application/json').list
+      parsed.map(&:media_range).must_equal ['application/json']
+    end
+
+    it "round trips quoted parameter values and quality" do
+      original = media_type.new('text', 'html', q: 0.8, extensions: {
+        'note' => 'a,b;c"d\\e', 'empty' => '', 'version' => "'1'"
+      })
+      parsed = subject.new(original.to_s).list
+      parsed.size.must_equal 1
+      parsed.first.to_h.must_equal original.to_h
     end
 
     it "skips invalid media types" do
@@ -108,7 +142,7 @@ describe AcceptHeaders::MediaType::Negotiator do
 
   describe "#to_s" do
     it "returns a string of each media type #to_s joined by a comma" do
-      subject.new("text/html;level=1, text/plain;q=0.9").to_s.must_equal "text/html;q=1;level=1,text/plain;q=0.9"
+      subject.new("text/html;level=1, text/plain;q=0.9").to_s.must_equal "text/html;level=1;q=1,text/plain;q=0.9"
     end
   end
 
@@ -150,13 +184,14 @@ describe AcceptHeaders::MediaType::Negotiator do
       api = subject.new('application/json;q=1;version=2,application/json;q=0.9;version=1')
       api.negotiate('text/html').must_be_nil
       api.negotiate('application/xml').must_be_nil
-      api.negotiate(['application/xml', 'application/json']).must_equal media_type.new(
+      api.negotiate(['application/xml', 'application/json']).must_be_nil
+      api.negotiate(['application/json;version=1', 'application/json;version=2']).to_h.must_equal media_type.new(
         'application',
         'json',
         extensions: {
-          'version' => '1'
+          'version' => '2'
         }
-      )
+      ).to_h
 
       q0 = subject.new('application/json,application/xml;q=0')
       q0.negotiate('application/json').must_equal media_type.new(
@@ -170,11 +205,54 @@ describe AcceptHeaders::MediaType::Negotiator do
       )
     end
 
+    it "uses the most specific matching range to assign quality before choosing a representation" do
+      n = subject.new('text/html;q=0.1,text/*;q=0.9,application/json;q=0.5')
+      n.negotiate(['text/html', 'application/json']).media_range.must_equal 'application/json'
+      n.negotiate(['text/html', 'text/plain']).media_range.must_equal 'text/plain'
+    end
+
+    it "gives matching parameters precedence over a parameterless range" do
+      n = subject.new('text/plain;q=0.7,text/plain;format=fixed;q=0.4,image/jpeg;q=0.5')
+      n.negotiate(['text/plain;format=fixed', 'image/jpeg']).media_range.must_equal 'image/jpeg'
+      n.negotiate(['text/plain', 'image/jpeg']).media_range.must_equal 'text/plain'
+    end
+
+    it "treats parameters after q as media parameters" do
+      n = subject.new('application/json;q=0.9;version=2')
+      n.negotiate('application/json').must_be_nil
+      n.negotiate('application/json;version=2').extensions.must_equal('version' => '2')
+    end
+
+    it "preserves the parameters of the supported representation" do
+      n = subject.new('application/json')
+      n.negotiate('application/json;version=2').to_h.must_equal media_type.new(
+        'application', 'json', extensions: { 'version' => '2' }
+      ).to_h
+    end
+
+    it "uses supported order to break equally preferred matching representations" do
+      n = subject.new('text/*')
+      n.negotiate(['text/plain', 'text/html']).media_range.must_equal 'text/plain'
+      n.negotiate(['text/html', 'text/plain']).media_range.must_equal 'text/html'
+    end
+
+    it "allows a specific positive quality to override a wildcard exclusion" do
+      n = subject.new('text/*;q=0,text/html;q=0.5')
+      n.negotiate('text/html').media_range.must_equal 'text/html'
+      n.negotiate('text/plain').must_be_nil
+    end
+
+    it "excludes only representations matching the rejected parameters" do
+      n = subject.new('text/plain;format=fixed;q=0,text/plain;q=1')
+      n.negotiate('text/plain;format=fixed').must_be_nil
+      n.negotiate('text/plain;format=flowed').extensions.must_equal('format' => 'flowed')
+    end
+
     it "rejects matching q=0 even if it matches media ranges where q > 0" do
-      n = subject.new('application/xml;q=0;*/*')
+      n = subject.new('application/xml;q=0,*/*')
       n.negotiate('application/xml').must_be_nil
 
-      n2 = subject.new('application/xml;q=0;application/xml;q=1')
+      n2 = subject.new('application/xml;q=0,application/xml;q=1')
       n2.negotiate('application/xml').must_be_nil
     end
   end
@@ -196,10 +274,10 @@ describe AcceptHeaders::MediaType::Negotiator do
     end
 
     it "returns false when q=0 even if it matches media ranges where q > 0" do
-      n = subject.new('application/xml;q=0;*/*')
+      n = subject.new('application/xml;q=0,*/*')
       n.accept?('application/xml').must_equal false
 
-      n2 = subject.new('application/xml;q=0;application/xml;q=1')
+      n2 = subject.new('application/xml;q=0,application/xml;q=1')
       n2.accept?('application/xml').must_equal false
     end
   end
