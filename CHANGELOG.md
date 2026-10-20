@@ -5,6 +5,7 @@
   * Honor specific quality values and exclusions before wildcard preferences.
   * Match declared media parameters and preserve supported representation parameters instead of copying requested parameters.
   * Preserve quoted delimiters and escapes, validate media tokens, and serialize media parameters before quality values.
+  * Handle raw HTTP field bytes without encoding exceptions and preserve quoted non-ASCII values.
   * Parse current quality syntax, including `0.`, `1.`, and case-insensitive `q`, while retaining the documented invalid-quality recovery value.
   * Distinguish missing and empty fields and apply encoding identity fallback and exclusion rules.
   * Support multi-subtag languages and case-insensitive matching. Replace `en-*` header ranges with `en`; bare supported tags remain bare.

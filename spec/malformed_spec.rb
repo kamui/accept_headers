@@ -22,6 +22,37 @@ class MalformedHeaderSpec < Minitest::Test
     assert_equal [{ type: 'text', subtype: 'html', q: 1.0, extensions: {} }], negotiator.list.map(&:to_h)
   end
 
+  def test_invalidly_tagged_token_bytes_are_skipped_by_each_negotiator
+    quality_negotiators.each do |negotiator, valid_token|
+      invalid_token = "\xFF".freeze
+      assert_empty negotiator.new(invalid_token).list
+
+      header = "#{invalid_token},#{valid_token}"
+      assert_equal negotiator.new(valid_token).list.map(&:to_h), negotiator.new(header).list.map(&:to_h)
+      assert_equal Encoding::UTF_8, invalid_token.encoding
+      refute invalid_token.valid_encoding?
+    end
+  end
+
+  def test_quoted_obs_text_bytes_are_preserved_and_round_trip
+    value = (0x80..0xFF).to_a.pack('C*')
+    header = ('text/html;note="'.b + value + '"').force_encoding('UTF-8')
+    item = AcceptHeaders::MediaType::Negotiator.new(header).list.first
+
+    assert_equal value, item.extensions['note']
+    assert_equal Encoding::ASCII_8BIT, item.extensions['note'].encoding
+    assert_equal item.to_h, AcceptHeaders::MediaType::Negotiator.new(item.to_s).list.first.to_h
+  end
+
+  def test_valid_utf8_quoted_values_retain_their_encoding_and_round_trip
+    value = "日本語; café"
+    item = AcceptHeaders::MediaType::Negotiator.new("text/html;note=\"#{value}\"").list.first
+
+    assert_equal value, item.extensions['note']
+    assert_equal Encoding::UTF_8, item.extensions['note'].encoding
+    assert_equal item.to_h, AcceptHeaders::MediaType::Negotiator.new(item.to_s).list.first.to_h
+  end
+
   def test_invalid_media_ranges_do_not_match_partial_lines_or_non_token_characters
     ['*/json', 'text/html/extra', 'text/ht{ml}', 'text/ht\\ml', "text/html\nnonsense", 'text /html'].each do |range|
       assert_empty AcceptHeaders::MediaType::Negotiator.new(range).list, range

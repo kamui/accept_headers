@@ -9,6 +9,7 @@ module AcceptHeaders
     QVALUE_PATTERN = /\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/
 
     def initialize(header)
+      header = header.b if header && !header.valid_encoding?
       @list = parse(header)
     end
 
