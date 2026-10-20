@@ -34,7 +34,7 @@ describe AcceptHeaders::MediaType::Negotiator do
     end
 
     it "ignores the 'Accept:' prefix" do
-      subject.new('Accept: text/html').list.must_equal [
+      subject.new('aCcEpT: text/html').list.must_equal [
         media_type.new('text', 'html')
       ]
     end
@@ -90,11 +90,47 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
     end
 
-    it "parses extensions with quoted values" do
-      subject.new('text/html;q=1;version="2";level="a;b;cc\'cd", text/html;version=\'1\';level=\'\blah;x;1;;\'').list.must_equal [
-        media_type.new('text', 'html', extensions: { 'version' => '2', 'level' => 'a;b;cc\'cd'}),
-        media_type.new('text', 'html', extensions: { 'version' => '1', 'level' => '\'\blah;x;1;;\''})
-      ]
+    it "preserves delimiters inside quoted parameter values" do
+      parsed = subject.new('text/html;version="2";level="a,b;c", application/json;q=0.8').list
+      parsed.map(&:media_range).must_equal ['text/html', 'application/json']
+      parsed.first.extensions.must_equal('version' => '2', 'level' => 'a,b;c')
+    end
+
+    it "unescapes quoted pairs without splitting escaped quotes" do
+      parsed = subject.new('text/html;note="a\\"b,c;d\\\\e"').list
+      parsed.size.must_equal 1
+      parsed.first.extensions.must_equal('note' => 'a"b,c;d\\e')
+    end
+
+    it "treats apostrophes as token characters rather than quotes" do
+      parsed = subject.new("text/html;version='1', application/json;q=0.8").list
+      parsed.map(&:media_range).must_equal ['text/html', 'application/json']
+      parsed.first.extensions.must_equal('version' => "'1'")
+    end
+
+    it "does not read quality values inside quoted parameters" do
+      parsed = subject.new('text/html;note="example;q=0.2";q=0.8').list.first
+      parsed.q.must_equal 0.8
+      parsed.extensions.must_equal('note' => 'example;q=0.2')
+    end
+
+    it "does not invent parameters from malformed values" do
+      ['text/html;note="unterminated', 'text/html;note="trailing' + "\\",
+       'text/html;note="closed"junk', "text/html;note=\"line\nbreak\"",
+       "text/html;note=\"escaped\\\nbreak\"", 'text/html;note=two words'].each do |header|
+        subject.new(header).list.must_equal []
+      end
+      parsed = subject.new('text/html;note="closed"junk, application/json').list
+      parsed.map(&:media_range).must_equal ['application/json']
+    end
+
+    it "round trips quoted parameter values and quality" do
+      original = media_type.new('text', 'html', q: 0.8, extensions: {
+        'note' => 'a,b;c"d\\e', 'empty' => '', 'version' => "'1'"
+      })
+      parsed = subject.new(original.to_s).list
+      parsed.size.must_equal 1
+      parsed.first.to_h.must_equal original.to_h
     end
 
     it "skips invalid media types" do
@@ -106,7 +142,7 @@ describe AcceptHeaders::MediaType::Negotiator do
 
   describe "#to_s" do
     it "returns a string of each media type #to_s joined by a comma" do
-      subject.new("text/html;level=1, text/plain;q=0.9").to_s.must_equal "text/html;q=1;level=1,text/plain;q=0.9"
+      subject.new("text/html;level=1, text/plain;q=0.9").to_s.must_equal "text/html;level=1;q=1,text/plain;q=0.9"
     end
   end
 

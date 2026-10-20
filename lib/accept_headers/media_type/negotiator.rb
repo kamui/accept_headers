@@ -7,7 +7,7 @@ module AcceptHeaders
       include Negotiatable
 
       MEDIA_TYPE_PATTERN = /\A[ \t]*(?<type>[!#$%&'*+\-.^_`|~0-9A-Za-z]+)(?:\/(?<subtype>[!#$%&'*+\-.^_`|~0-9A-Za-z]+))?[ \t]*\z/
-      PARAMS_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
+      PARAMS_PATTERN = /\A\s*(?<attribute>[!#$%&'*+\-.^_`|~0-9A-Za-z]+)\s*=\s*(?<value>[!#$%&'*+\-.^_`|~0-9A-Za-z]+|"(?:[\t !#-\[\]-~\x80-\xFF]|\\[\t -~\x80-\xFF])*")\s*\z/n
       HEADER_PREFIX = 'Accept:'
 
       def negotiate(supported)
@@ -40,16 +40,19 @@ module AcceptHeaders
 
       def parse_extensions(extensions_string)
         return {} if !extensions_string || extensions_string.empty?
-        if extensions_string.match(/['"]/)
-          extensions = extensions_string.scan(PARAMS_PATTERN).map(&:compact).to_h
-        else
-          extensions = {}
-          extensions_string.split(';').each do |part|
-            param = PARAMS_PATTERN.match(part)
-            extensions[param[:attribute]] = param[:value] if param
+        extensions = {}
+        split_quoted(extensions_string, ';').each do |part|
+          next if part.strip.empty?
+          name = part.split('=', 2).first.strip.downcase
+          next if name == 'q'
+          param = PARAMS_PATTERN.match(part.b)
+          raise ParseError unless param
+          value = param[:value].force_encoding(part.encoding)
+          if value.start_with?('"')
+            value = value[1...-1].gsub(/\\(.)/m, '\\1')
           end
+          extensions[param[:attribute].downcase] = value
         end
-        extensions.delete('q')
         extensions
       end
     end

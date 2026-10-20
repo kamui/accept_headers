@@ -92,7 +92,12 @@ describe AcceptHeaders::MediaType do
 
   it "converts to string" do
     s = subject.new('text', 'html', q: 0.9, extensions: { 'level' => '1' }).to_s
-    s.must_equal "text/html;q=0.9;level=1"
+    s.must_equal "text/html;level=1;q=0.9"
+  end
+
+  it "quotes parameter delimiters and escapes quotes and backslashes" do
+    value = subject.new('text', 'html', extensions: { 'note' => 'a,b;c"d\\e', 'empty' => '' })
+    value.to_s.must_equal 'text/html;note="a,b;c\\"d\\\\e";empty="";q=1'
   end
 
   it "outputs the media range" do

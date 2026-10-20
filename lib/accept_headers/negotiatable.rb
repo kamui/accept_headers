@@ -47,11 +47,11 @@ module AcceptHeaders
     def parse(header, &block)
       return no_header unless header
       header = header.dup
-      header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/, '')
+      header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/i, '')
       header.strip!
       return [] if header.empty?
       list = []
-      header.split(',').each do |entry|
+      split_quoted(header, ',').each do |entry|
         begin
           item = parse_item(entry)
           next if item.nil?
@@ -61,6 +61,8 @@ module AcceptHeaders
         end
       end
       list.sort! { |x,y| y <=> x }
+    rescue ParseError
+      []
     end
 
     def split_quoted(value, delimiter)

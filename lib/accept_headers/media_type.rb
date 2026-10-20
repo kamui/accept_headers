@@ -63,11 +63,17 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
-      string = "#{media_range};q=#{qvalue}"
+      string = media_range
       if extensions.size > 0
-        extensions.each { |k, v| string.concat(";#{k}=#{v}") }
+        extensions.each do |key, value|
+          value = value.to_s
+          unless /\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/.match(value)
+            value = '"' + value.gsub(/["\\]/) { |character| "\\#{character}" } + '"'
+          end
+          string.concat(";#{key}=#{value}")
+        end
       end
-      string
+      string.concat(";q=#{qvalue}")
     end
 
     def media_range
