@@ -5,7 +5,8 @@ module AcceptHeaders
 
     attr_reader :list
 
-    Q_PATTERN = /(?:\A|;)\s*(?<exists>qs*\=)\s*(?:(?<q>0\.\d{1,3}|[01])|(?:[^;]*))\s*(?:\z|;)/
+    Q_PATTERN = /\A[ \t]*q[ \t]*=[ \t]*(?<q>.*?)[ \t]*\z/im
+    QVALUE_PATTERN = /\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/
 
     def initialize(header)
       @list = parse(header)
@@ -48,7 +49,7 @@ module AcceptHeaders
       header = header.dup
       header.sub!(/\A#{self.class::HEADER_PREFIX}\s*/, '')
       header.strip!
-      return no_header if header.empty?
+      return [] if header.empty?
       list = []
       header.split(',').each do |entry|
         begin
@@ -62,18 +63,38 @@ module AcceptHeaders
       list.sort! { |x,y| y <=> x }
     end
 
-    def parse_q(header)
-      q = 1
-      return q unless header
-      q_match = Q_PATTERN.match(header)
-      if q_match && q_match[:exists]
-        if q_match[:q]
-          q = q_match[:q]
-        else
-          q = 0.001
+    def split_quoted(value, delimiter)
+      parts = []
+      part = +""
+      quoted = false
+      escaped = false
+      value.each_char do |character|
+        if escaped
+          escaped = false
+        elsif quoted && character == "\\"
+          escaped = true
+        elsif character == '"'
+          quoted = !quoted
+        elsif !quoted && character == delimiter
+          parts << part
+          part = +""
+          next
         end
+        part << character
       end
-      q
+      raise ParseError if quoted || escaped
+      parts << part
+    end
+
+    def parse_q(header)
+      return 1 unless header
+      split_quoted(header, ';').each do |parameter|
+        q_match = Q_PATTERN.match(parameter)
+        next unless q_match
+        value = q_match[:q]
+        return QVALUE_PATTERN.match(value) ? value.to_f : 0.001
+      end
+      1
     end
   end
 end

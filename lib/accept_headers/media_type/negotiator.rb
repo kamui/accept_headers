@@ -6,7 +6,7 @@ module AcceptHeaders
     class Negotiator
       include Negotiatable
 
-      MEDIA_TYPE_PATTERN = /^\s*(?<type>[\w!#$%^&*\-\+{}\\|'.`~]+)(?:\s*\/\s*(?<subtype>[\w!#$%^&*\-\+{}\\|'.`~]+))?\s*$/
+      MEDIA_TYPE_PATTERN = /\A[ \t]*(?<type>[!#$%&'*+\-.^_`|~0-9A-Za-z]+)(?:\/(?<subtype>[!#$%&'*+\-.^_`|~0-9A-Za-z]+))?[ \t]*\z/
       PARAMS_PATTERN = /(?<attribute>[\w!#$%^&*\-\+{}\\|'.`~]+)\s*\=\s*(?:\"(?<value>[^"]*)\"|\'(?<value>[^']*)\'|(?<value>[\w!#$%^&*\-\+{}\\|\'.`~]*))/
       HEADER_PREFIX = 'Accept:'
 
@@ -28,6 +28,8 @@ module AcceptHeaders
         raise Error if accept_media_range.nil?
         media_range = MEDIA_TYPE_PATTERN.match(accept_media_range)
         raise Error if media_range.nil?
+        raise Error if media_range[:subtype].nil? && media_range[:type] != '*'
+        raise Error if media_range[:type] == '*' && ![nil, '*'].include?(media_range[:subtype])
         MediaType.new(
           media_range[:type],
           media_range[:subtype],

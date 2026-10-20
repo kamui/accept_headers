@@ -54,10 +54,8 @@ describe AcceptHeaders::MediaType::Negotiator do
       end
     end
 
-    it "sets media type to */* when the accept header is empty" do
-      subject.new('').list.must_equal [
-        media_type.new('*', '*')
-      ]
+    it "accepts no media types when the accept header is present but empty" do
+      assert_empty subject.new('').list
     end
 
     it "sets media type to */* when the type is only *" do
