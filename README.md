@@ -106,7 +106,7 @@ Basic Filtering matches a complete range or a prefix followed by a hyphen, witho
 
 Use `en` to match English variants. Extended wildcard ranges such as `en-*` are outside the HTTP basic language-range syntax and are skipped. This is filtering, so `en-GB` does not fall back to `en` or match `en-US`.
 
-`#primary_tag` returns the first subtag. `#subtag` returns the remaining subtags as one lowercase string. Language tags returned by negotiation are lowercase supported tags. Bare tags remain bare, so `en` is not emitted as `en-*`.
+`#primary_tag` returns the first subtag. `#subtag` returns the remaining subtags as one lowercase string. For a bare tag, `#subtag` retains the historical `*` sentinel. Language tags returned by negotiation are lowercase supported tags. Bare tags remain bare, so `en` is not emitted as `en-*`.
 
 ### Missing, empty, and malformed headers
 
@@ -116,7 +116,7 @@ The parsers skip malformed entries. An unterminated quoted string rejects the wh
 
 Invalid quality values recover to `0.001`, preserving this library's lenient parsing policy. Missing quality defaults to `1`. Valid quality syntax follows RFC 9110: values range from `0` to `1` with at most three decimal digits, including `0.`, `1.`, and `1.000`. The parameter name `q` is case-insensitive.
 
-`#to_s` produces a normalized preference header, including quality values. Use `#media_range`, `#encoding`, or `#language_tag` when you need the selected value alone. Objects compare equal only when their type-specific fields and quality values agree. Sorting order does not imply equality.
+`#to_s` produces a normalized preference header, including quality values. Use `#media_range`, `#encoding`, or `#language_tag` when you need the selected value alone. With `==`, objects compare equal only when their class, type-specific fields, and quality values agree. Sorting order does not imply equality.
 
 ## Rack middleware
 
@@ -158,7 +158,7 @@ The current implementation corrects behavior from version 0.1.0:
 - Replace `en-*` header ranges with `en`. Multi-subtag language ranges now work, and bare supported tags remain bare.
 - Equality compares actual values, including parameters. Two different values with equal sort priority are no longer equal.
 
-The public negotiator classes, constructors, and `#extensions` accessor remain available. These corrections can change selection results for callers that depended on the previous behavior. No gem release is published by these changes.
+The public negotiator classes, constructors, and `#extensions` accessor remain available. These corrections can change selection results for callers that depended on the previous behavior.
 
 ## Development
 
