@@ -1,6 +1,7 @@
 require_relative "spec_helper"
 require "accept_headers/middleware"
-require "rack/test"
+require "rack/builder"
+require "rack/mock"
 
 describe AcceptHeaders::Middleware do
   subject do
@@ -19,9 +20,9 @@ describe AcceptHeaders::Middleware do
         matched_encoding = env["accept_headers.encodings"].negotiate(supported_encodings)
         matched_language = env["accept_headers.languages"].negotiate(supported_languages)
         headers = {
-          'Content-Type' => matched_media_type ? matched_media_type.media_range : '',
-          'Content-Encoding' => matched_encoding ? matched_encoding.encoding : '',
-          'Content-Language' => matched_language ? matched_language.language_tag : '',
+          'content-type' => matched_media_type ? matched_media_type.media_range : '',
+          'content-encoding' => matched_encoding ? matched_encoding.encoding : '',
+          'content-language' => matched_language ? matched_language.language_tag : '',
         }
 
         [ 200, headers, [ '' ] ]

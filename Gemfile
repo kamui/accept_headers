@@ -4,6 +4,7 @@ source "https://rubygems.org"
 gemspec
 
 group :test do
+  gem "csv"
   gem "minitest-focus"
   gem "simplecov", require: false
 end
@@ -11,5 +12,5 @@ end
 group :development, :test do
   gem "pry"
   gem "awesome_print"
-  gem "rack-test"
+  gem "rack"
 end
