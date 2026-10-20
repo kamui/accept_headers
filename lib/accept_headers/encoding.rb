@@ -27,6 +27,10 @@ module AcceptHeaders
       }
     end
 
+    def specificity
+      [encoding == '*' ? 0 : 1]
+    end
+
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
       "#{encoding};q=#{qvalue}"

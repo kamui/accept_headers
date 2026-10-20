@@ -39,5 +39,9 @@ module AcceptHeaders
     def match(other)
       raise NotImplementedError.new("#match is not implemented")
     end
+
+    def specificity
+      raise NotImplementedError.new("#specificity is not implemented")
+    end
   end
 end

@@ -60,6 +60,10 @@ module AcceptHeaders
       end
     end
 
+    def specificity
+      [language_tag.split('-').count { |part| part != '*' }]
+    end
+
     def match(language_tag_string)
       match_data = Negotiator::LANGUAGE_TAG_PATTERN.match(language_tag_string)
       if !match_data

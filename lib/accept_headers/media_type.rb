@@ -74,6 +74,10 @@ module AcceptHeaders
       "#{type}/#{subtype}"
     end
 
+    def specificity
+      [type == '*' ? 0 : 1, subtype == '*' ? 0 : 1, extensions.size]
+    end
+
     def match(media_range_string)
       match_data = Negotiator::MEDIA_TYPE_PATTERN.match(media_range_string)
       if !match_data

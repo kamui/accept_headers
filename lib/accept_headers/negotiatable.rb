@@ -12,22 +12,18 @@ module AcceptHeaders
     end
 
     def negotiate(supported)
-      return nil if list.empty?
-      supported = [*supported]
-      # TODO: Maybe q=0 should be first by default when sorting
-      rejects, acceptable = list.partition { |m| m.q == 0.0 }
-      (rejects + acceptable).each do |part|
-        supported.each do |support|
-          if part.match(support)
-            if part.q == 0.0
-              next
-            else
-              return [support, part]
-            end
-          end
+      candidates = [*supported].each_with_index.map do |support, support_index|
+        matches = list.each_with_index.select { |part, _| part.match(support) }
+        part, header_index = matches.max_by do |match, _|
+          [match.specificity, match.q.zero? ? 1 : 0, match.q]
         end
+        next if part.nil? || part.q.zero?
+        [support, part, header_index, support_index]
+      end.compact
+      best = candidates.max_by do |_, part, header_index, support_index|
+        [part.q, part.specificity, -header_index, -support_index]
       end
-      nil
+      best && best.first(2)
     end
 
     def accept?(other)
