@@ -4,6 +4,8 @@
 
 AcceptHeaders parses HTTP `Accept`, `Accept-Encoding`, and `Accept-Language` headers and negotiates a match against the representations your application supports. It has no runtime dependencies.
 
+This README describes version 0.2.0. See [Upgrading from 0.1.0 to 0.2.0](#upgrading-from-010-to-020) before updating an existing installation.
+
 Negotiation follows [RFC 9110, sections 12.4 and 12.5](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4). Language matching uses [RFC 4647 Basic Filtering](https://www.rfc-editor.org/rfc/rfc4647.html#section-3.3.1). `Accept-Charset` is not supported because it is deprecated.
 
 ## Installation
@@ -13,7 +15,7 @@ CI covers the maintained Ruby series: 3.3, 3.4, and 4.0. Older Ruby versions rem
 Add the gem to your Gemfile and run `bundle install`:
 
 ```ruby
-gem 'accept_headers'
+gem 'accept_headers', '~> 0.2.0'
 ```
 
 ## Usage
@@ -147,9 +149,9 @@ run lambda { |env|
 
 This example supports an unencoded JSON body in two English locales. It chooses to honor negotiation failures with `406`. Applications can choose a different fallback policy. When request headers influence response selection, set `Vary` so caches distinguish the variants. Rack 3 response header names must be lowercase.
 
-## Compatibility notes
+## Upgrading from 0.1.0 to 0.2.0
 
-The current implementation corrects behavior from version 0.1.0:
+Version 0.2.0 corrects behavior from version 0.1.0:
 
 - Explicit exclusions and specific media preferences now take precedence over broader wildcard matches.
 - Parameterized media requests require matching supported parameters. Replace `negotiate('application/json')` with the versioned representations your application actually supports.
