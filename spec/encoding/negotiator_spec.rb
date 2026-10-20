@@ -38,10 +38,14 @@ describe AcceptHeaders::Encoding::Negotiator do
       end
     end
 
-    it "sets encoding to * when the accept-encoding header is empty" do
-      subject.new('').list.must_equal [
-        encoding.new('*')
-      ]
+    it "allows only identity when the accept-encoding header is empty" do
+      ['', " \t", 'Accept-Encoding:', 'accept-encoding: '].each do |header|
+        subject.new(header).list.map(&:encoding).must_equal ['identity']
+      end
+    end
+
+    it "allows any content coding when the accept-encoding header is absent" do
+      subject.new(nil).list.map(&:encoding).must_equal ['*']
     end
 
     it "defaults q to 1 if it's not explicitly specified" do
@@ -75,6 +79,10 @@ describe AcceptHeaders::Encoding::Negotiator do
         encoding.new('gzip', q: 1.0)
       ]
     end
+
+    it "parses HTTP token characters and skips delimiter-containing coding names" do
+      subject.new('example.coding, bad{coding}, bad\\coding').list.map(&:encoding).must_equal ['example.coding']
+    end
   end
 
   describe "#to_s" do
@@ -86,7 +94,53 @@ describe AcceptHeaders::Encoding::Negotiator do
   describe "negotiate supported encodings" do
     it "returns a best matching encoding" do
       n = subject.new('deflate; q=0.5, gzip, compress; q=0.8, identity')
-      n.negotiate(['identity', 'deflate']).must_equal encoding.new('identity')
+      n.negotiate(['identity', 'deflate']).encoding.must_equal 'identity'
+    end
+
+    it "distinguishes an absent header from an empty field value" do
+      subject.new(nil).negotiate('gzip').encoding.must_equal 'gzip'
+      ['', " \t", 'Accept-Encoding:'].each do |header|
+        negotiator = subject.new(header)
+        negotiator.negotiate('gzip').must_be_nil
+        negotiator.negotiate(['gzip', 'identity']).encoding.must_equal 'identity'
+      end
+    end
+
+    it "prefers an acceptable coding over implicit identity" do
+      subject.new('gzip;q=0.5').negotiate(['identity', 'gzip']).encoding.must_equal 'gzip'
+      subject.new('*;q=0.5').negotiate(['identity', 'br']).encoding.must_equal 'br'
+    end
+
+    it "falls back to identity without accepting unlisted content codings" do
+      negotiator = subject.new('gzip')
+      negotiator.negotiate(['br', 'identity']).encoding.must_equal 'identity'
+      negotiator.accept?('identity').must_equal true
+      negotiator.negotiate('br').must_be_nil
+    end
+
+    it "does not turn another coding's rejection into an identity rejection" do
+      negotiator = subject.new('gzip;q=0')
+      negotiator.negotiate(['gzip', 'identity']).encoding.must_equal 'identity'
+      negotiator.accept?('gzip').must_equal false
+    end
+
+    it "honors explicit identity preferences and exclusions" do
+      subject.new('gzip;q=0.5, identity;q=0.8').negotiate(['gzip', 'identity']).encoding.must_equal 'identity'
+      subject.new('identity;q=0').negotiate('identity').must_be_nil
+      subject.new('*;q=0').negotiate('identity').must_be_nil
+      subject.new('*;q=0, identity;q=0.5').negotiate('identity').encoding.must_equal 'identity'
+    end
+
+    it "matches supported coding names without case sensitivity" do
+      subject.new('GZIP').negotiate('GZip').encoding.must_equal 'gzip'
+      subject.new('br').negotiate('IDENTITY').encoding.must_equal 'identity'
+    end
+
+    it "requires supported names to be complete HTTP tokens" do
+      negotiator = subject.new('*')
+      ['gzip\\bad', 'gzip{bad}', "gzip\nidentity", 'gzip,br'].each do |coding|
+        negotiator.negotiate(coding).must_be_nil
+      end
     end
   end
 end

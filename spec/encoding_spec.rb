@@ -74,6 +74,14 @@ describe AcceptHeaders::Encoding do
       a.accept?('gzip').must_equal true
       b = subject.new('gzip', q: 0.001)
       b.accept?('gzip').must_equal true
+      a.accept?('GZIP').must_equal true
+    end
+
+    it "matches identity only as its own coding or a wildcard" do
+      subject.new('gzip').accept?('identity').must_equal false
+      subject.new('gzip', q: 0).reject?('identity').must_equal false
+      subject.new('identity').accept?('IDENTITY').must_equal true
+      subject.new('*').accept?('identity').must_equal true
     end
 
     it "accepted if the encoding is *" do

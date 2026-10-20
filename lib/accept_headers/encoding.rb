@@ -40,9 +40,7 @@ module AcceptHeaders
       match_data = Negotiator::ENCODING_PATTERN.match(encoding_string)
       if !match_data
         false
-      elsif encoding == match_data[:encoding]
-        true
-      elsif match_data[:encoding] == 'identity'
+      elsif encoding == match_data[:encoding].downcase
         true
       elsif encoding == '*'
         true
