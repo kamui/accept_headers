@@ -25,7 +25,7 @@ describe AcceptHeaders::Encoding::Negotiator do
       ]
     end
 
-    it "supports all registered IANA encodings" do
+    it "parses content codings in the bundled IANA snapshot" do
       require 'csv'
       # https://www.iana.org/assignments/http-parameters/http-parameters.xml#content-coding
       CSV.foreach("spec/support/encodings/content-coding.csv", headers: true) do |row|

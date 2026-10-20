@@ -29,7 +29,7 @@ class MalformedHeaderSpec < Minitest::Test
   end
 
   def test_media_ranges_accept_http_token_characters_and_supported_wildcards
-    ['application/x_example+json', 'text/*', '*/*', '*'].each do |range|
+    ['application/x_example+json', 'application/problem+json', 'image/avif', 'text/*', '*/*', '*'].each do |range|
       assert_equal 1, AcceptHeaders::MediaType::Negotiator.new(range).list.size, range
     end
   end

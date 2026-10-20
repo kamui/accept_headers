@@ -1,5 +1,16 @@
 ## HEAD
 
+  * Replace Travis CI with GitHub Actions covering maintained Ruby 3.3, 3.4, and 4.0, and repair fresh test dependency setup.
+  * Follow RFC 9110 negotiation rules and RFC 4647 Basic Filtering for languages.
+  * Honor specific quality values and exclusions before wildcard preferences.
+  * Match declared media parameters and preserve supported representation parameters instead of copying requested parameters.
+  * Preserve quoted delimiters and escapes, validate media tokens, and serialize media parameters before quality values.
+  * Parse current quality syntax, including `0.`, `1.`, and case-insensitive `q`, while retaining the documented invalid-quality recovery value.
+  * Distinguish missing and empty fields and apply encoding identity fallback and exclusion rules.
+  * Support multi-subtag languages and case-insensitive matching. Replace `en-*` header ranges with `en`; bare supported tags remain bare.
+  * Compare values by all their fields instead of equating unrelated values with the same sort priority.
+  * Update usage, compatibility notes, and Rack 3 examples. These corrections change results for callers relying on the previous behavior; see the README before upgrading.
+
 ## 0.1.0 / April 19, 2019
 
   * Require ruby 2.4 minimum.

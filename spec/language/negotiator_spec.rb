@@ -17,9 +17,15 @@ describe AcceptHeaders::Language::Negotiator do
       subject.new('Accept-Language: en-us').list.map(&:language_tag).must_equal ['en-us']
     end
 
-    it "accepts any language when the header is missing or empty" do
-      [nil, ''].each do |header|
-        subject.new(header).list.map(&:language_tag).must_equal ['*']
+    it "accepts any language when the header is missing" do
+      subject.new(nil).list.map(&:language_tag).must_equal ['*']
+      subject.new(nil).negotiate('en-US').language_tag.must_equal 'en-us'
+    end
+
+    it "accepts no languages when the header is present and empty" do
+      ['', " \t", 'Accept-Language:'].each do |header|
+        assert_empty subject.new(header).list
+        assert_nil subject.new(header).negotiate('en-US')
       end
     end
 

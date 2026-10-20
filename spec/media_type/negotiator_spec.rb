@@ -39,7 +39,7 @@ describe AcceptHeaders::MediaType::Negotiator do
       ]
     end
 
-    it "supports all registered IANA media types" do
+    it "parses media types in the bundled IANA snapshot" do
       require 'csv'
       # https://www.iana.org/assignments/media-types/media-types.xhtml
       %w[application audio image message model multipart text video].each do |filename|
