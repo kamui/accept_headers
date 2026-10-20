@@ -1,4 +1,4 @@
-## HEAD
+## 0.2.0 / Unreleased
 
   * Replace Travis CI with GitHub Actions covering maintained Ruby 3.3, 3.4, and 4.0, and repair fresh test dependency setup.
   * Follow RFC 9110 negotiation rules and RFC 4647 Basic Filtering for languages.
@@ -10,7 +10,7 @@
   * Distinguish missing and empty fields and apply encoding identity fallback and exclusion rules.
   * Support multi-subtag languages and case-insensitive matching. Replace `en-*` header ranges with `en`; bare supported tags remain bare.
   * Compare values by all their fields instead of equating unrelated values with the same sort priority.
-  * Update usage, compatibility notes, and Rack 3 examples. These corrections change results for callers relying on the previous behavior; see the README before upgrading.
+  * Update usage, upgrade notes, and Rack 3 examples. These corrections change results for callers relying on the previous behavior; see [Upgrading from 0.1.0 to 0.2.0](README.md#upgrading-from-010-to-020) before upgrading.
 
 ## 0.1.0 / April 19, 2019
 
