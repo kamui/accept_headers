@@ -5,6 +5,10 @@ module AcceptHeaders
 
     attr_reader :q
 
+    def ==(other)
+      other.instance_of?(self.class) && to_h == other.to_h
+    end
+
     def reject?(other)
       if q != 0.0
         false
