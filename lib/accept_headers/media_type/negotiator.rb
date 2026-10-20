@@ -11,15 +11,9 @@ module AcceptHeaders
       HEADER_PREFIX = 'Accept:'
 
       def negotiate(supported)
-        support, match = super(supported)
-        return nil if support.nil? && match.nil?
-        begin
-          media_type = parse(support).first
-          media_type.extensions = match.extensions
-          return media_type
-        rescue MediaType::Error
-          return nil
-        end
+        support, = super(supported)
+        return nil if support.nil?
+        parse(support).first
       end
 
       private

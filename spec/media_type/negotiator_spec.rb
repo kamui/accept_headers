@@ -150,13 +150,14 @@ describe AcceptHeaders::MediaType::Negotiator do
       api = subject.new('application/json;q=1;version=2,application/json;q=0.9;version=1')
       api.negotiate('text/html').must_be_nil
       api.negotiate('application/xml').must_be_nil
-      api.negotiate(['application/xml', 'application/json']).must_equal media_type.new(
+      api.negotiate(['application/xml', 'application/json']).must_be_nil
+      api.negotiate(['application/json;version=1', 'application/json;version=2']).to_h.must_equal media_type.new(
         'application',
         'json',
         extensions: {
-          'version' => '1'
+          'version' => '2'
         }
-      )
+      ).to_h
 
       q0 = subject.new('application/json,application/xml;q=0')
       q0.negotiate('application/json').must_equal media_type.new(
@@ -170,11 +171,54 @@ describe AcceptHeaders::MediaType::Negotiator do
       )
     end
 
+    it "uses the most specific matching range to assign quality before choosing a representation" do
+      n = subject.new('text/html;q=0.1,text/*;q=0.9,application/json;q=0.5')
+      n.negotiate(['text/html', 'application/json']).media_range.must_equal 'application/json'
+      n.negotiate(['text/html', 'text/plain']).media_range.must_equal 'text/plain'
+    end
+
+    it "gives matching parameters precedence over a parameterless range" do
+      n = subject.new('text/plain;q=0.7,text/plain;format=fixed;q=0.4,image/jpeg;q=0.5')
+      n.negotiate(['text/plain;format=fixed', 'image/jpeg']).media_range.must_equal 'image/jpeg'
+      n.negotiate(['text/plain', 'image/jpeg']).media_range.must_equal 'text/plain'
+    end
+
+    it "treats parameters after q as media parameters" do
+      n = subject.new('application/json;q=0.9;version=2')
+      n.negotiate('application/json').must_be_nil
+      n.negotiate('application/json;version=2').extensions.must_equal('version' => '2')
+    end
+
+    it "preserves the parameters of the supported representation" do
+      n = subject.new('application/json')
+      n.negotiate('application/json;version=2').to_h.must_equal media_type.new(
+        'application', 'json', extensions: { 'version' => '2' }
+      ).to_h
+    end
+
+    it "uses supported order to break equally preferred matching representations" do
+      n = subject.new('text/*')
+      n.negotiate(['text/plain', 'text/html']).media_range.must_equal 'text/plain'
+      n.negotiate(['text/html', 'text/plain']).media_range.must_equal 'text/html'
+    end
+
+    it "allows a specific positive quality to override a wildcard exclusion" do
+      n = subject.new('text/*;q=0,text/html;q=0.5')
+      n.negotiate('text/html').media_range.must_equal 'text/html'
+      n.negotiate('text/plain').must_be_nil
+    end
+
+    it "excludes only representations matching the rejected parameters" do
+      n = subject.new('text/plain;format=fixed;q=0,text/plain;q=1')
+      n.negotiate('text/plain;format=fixed').must_be_nil
+      n.negotiate('text/plain;format=flowed').extensions.must_equal('format' => 'flowed')
+    end
+
     it "rejects matching q=0 even if it matches media ranges where q > 0" do
-      n = subject.new('application/xml;q=0;*/*')
+      n = subject.new('application/xml;q=0,*/*')
       n.negotiate('application/xml').must_be_nil
 
-      n2 = subject.new('application/xml;q=0;application/xml;q=1')
+      n2 = subject.new('application/xml;q=0,application/xml;q=1')
       n2.negotiate('application/xml').must_be_nil
     end
   end
@@ -196,10 +240,10 @@ describe AcceptHeaders::MediaType::Negotiator do
     end
 
     it "returns false when q=0 even if it matches media ranges where q > 0" do
-      n = subject.new('application/xml;q=0;*/*')
+      n = subject.new('application/xml;q=0,*/*')
       n.accept?('application/xml').must_equal false
 
-      n2 = subject.new('application/xml;q=0;application/xml;q=1')
+      n2 = subject.new('application/xml;q=0,application/xml;q=1')
       n2.accept?('application/xml').must_equal false
     end
   end
