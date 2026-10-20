@@ -2,84 +2,100 @@ require_relative "../spec_helper"
 
 describe AcceptHeaders::Language::Negotiator do
   subject { AcceptHeaders::Language::Negotiator }
-  let(:language) { AcceptHeaders::Language }
 
-  describe "parsing an accept header" do
-    it "returns a sorted array of media primary tags" do
-      subject.new("en-*;q=0.2, en-us").list.must_equal [
-        language.new('en', 'us'),
-        language.new('en', '*', q: 0.2)
+  describe "parsing an Accept-Language header" do
+    it "sorts ranges by quality and specificity" do
+      subject.new('en;q=0.2, en-us').list.map(&:to_h).must_equal [
+        {primary_tag: 'en', subtag: 'us', q: 1.0},
+        {primary_tag: 'en', subtag: '*', q: 0.2}
       ]
 
-      subject.new("en-*, en-us, *;q=0.8").list.must_equal [
-        language.new('en', 'us'),
-        language.new('en', '*'),
-        language.new('*', '*', q: 0.8)
+      subject.new('en, en-us, *;q=0.8').list.map(&:language_tag).must_equal ['en-us', 'en', '*']
+    end
+
+    it "ignores the Accept-Language prefix" do
+      subject.new('Accept-Language: en-us').list.map(&:language_tag).must_equal ['en-us']
+    end
+
+    it "accepts any language when the header is missing or empty" do
+      [nil, ''].each do |header|
+        subject.new(header).list.map(&:language_tag).must_equal ['*']
+      end
+    end
+
+    it "parses a wildcard range" do
+      subject.new('*').list.map(&:to_h).must_equal [
+        {primary_tag: '*', subtag: '*', q: 1.0}
       ]
     end
 
-    it "ignores the 'Accept-Language:' prefix" do
-      subject.new('Accept-Language: en-us').list.must_equal [
-        language.new('en', 'us')
+    it "defaults quality to one" do
+      subject.new('en-us').list.first.to_h.must_equal({primary_tag: 'en', subtag: 'us', q: 1.0})
+    end
+
+    it "uses the documented fallback quality for an invalid weight" do
+      subject.new('en-us;q=x').list.first.to_h.must_equal({primary_tag: 'en', subtag: 'us', q: 0.001})
+    end
+
+    it "allows optional whitespace around ranges" do
+      subject.new("\ten-us , en-gb\t").list.map(&:language_tag).must_equal ['en-us', 'en-gb']
+    end
+
+    it "retains every subtag and normalizes case" do
+      subject.new('ZH-Hant-TW, en-US-omg;q=0.9').list.map(&:to_h).must_equal [
+        {primary_tag: 'zh', subtag: 'hant-tw', q: 1.0},
+        {primary_tag: 'en', subtag: 'us-omg', q: 0.9}
       ]
     end
 
-    it "sets media primary tag to */* when the accept header is empty" do
-      subject.new('').list.must_equal [
-        language.new('*', '*')
-      ]
-    end
-
-    it "sets media primary tag to */* when the primary tag is only *" do
-      subject.new('*').list.must_equal [
-        language.new('*', '*')
-      ]
-    end
-
-    it "defaults q to 1 if it's not explicitly specified" do
-      subject.new("en-us").list.must_equal [
-        language.new('en', 'plain', q: 1.0)
-      ]
-    end
-
-    it "strips whitespace from between media primary tags" do
-      subject.new("\ten-us\r,\nen-gb\s").list.must_equal [
-        language.new('en', 'us'),
-        language.new('en', 'gb')
-      ]
-    end
-
-    it "strips whitespace around q" do
-      subject.new("en-us;\tq\r=\n1, en-gb").list.must_equal [
-        language.new('en', 'us'),
-        language.new('en', 'gb')
-      ]
-    end
-
-    it "has a q value of 0.001 when parsed q is invalid" do
-      subject.new("en-us;q=x").list.must_equal [
-        language.new('en', 'plain', q: 0.001)
-      ]
-    end
-
-    it "skips invalid media primary tags" do
-      subject.new("en-us, en-us-omg;q=0.9").list.must_equal [
-        language.new('en', 'us', q: 1)
-      ]
+    it "skips ranges outside the basic language-range grammar" do
+      invalid = ['en-*', '*-US', 'en_US', '123', 'englishxx', 'en-123456789', 'en--US', 'en - US']
+      subject.new((invalid + ['fr']).join(',')).list.map(&:language_tag).must_equal ['fr']
     end
   end
 
   describe "#to_s" do
-    it "returns a string of each language #to_s joined by a comma" do
-      subject.new("en-us, en-gb;q=0.9").to_s.must_equal "en-us;q=1,en-gb;q=0.9"
+    it "serializes basic language ranges without adding wildcards" do
+      subject.new('en, zh-Hant-TW;q=0.9').to_s.must_equal 'en;q=1,zh-hant-tw;q=0.9'
     end
   end
 
-  describe "negotiate supported languages" do
-    it "returns a best matching language" do
-      match = language.new('en', 'us')
-      n = subject.new('en-*, en-us, *;q=0.8')
-      n.negotiate('en-us').must_equal language.new('en', 'us')
+  describe "negotiating supported languages" do
+    it "returns the supported language rather than the matching range" do
+      match = subject.new('en, *;q=0.8').negotiate('en-US')
+      match.to_h.must_equal({primary_tag: 'en', subtag: 'us', q: 1.0})
+    end
+
+    it "returns a plain supported language without a synthetic wildcard" do
+      subject.new('*').negotiate('en').language_tag.must_equal 'en'
+    end
+
+    it "matches script and region subtags case insensitively" do
+      subject.new('zh-Hant').negotiate(['zh-Hans-TW', 'ZH-hant-TW']).language_tag.must_equal 'zh-hant-tw'
+    end
+
+    it "applies a more specific exclusion before its parent language range" do
+      match = subject.new('zh, zh-Hant;q=0').negotiate(['zh-Hant-TW', 'zh-Hans-CN'])
+      match.language_tag.must_equal 'zh-hans-cn'
+    end
+
+    it "uses the most specific matching range quality" do
+      match = subject.new('en;q=1, en-US;q=0.1, fr;q=0.5').negotiate(['en-US', 'fr'])
+      match.language_tag.must_equal 'fr'
+    end
+
+    it "rejects candidates outside a subtag boundary" do
+      subject.new('en-US').accept?('en-USA').must_equal false
+    end
+
+    it "requires concrete supported language tags" do
+      ['*', 'en-*', 'en_US', 'en;q=1', nil].each do |support|
+        subject.new('*').accept?(support).must_equal false
+      end
+    end
+
+    it "returns nil when no supported language matches" do
+      _(subject.new('fr').negotiate('en')).must_be_nil
     end
   end
 end
