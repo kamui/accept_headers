@@ -1,3 +1,5 @@
+require "accept_headers/invalid_supported_value"
+
 module AcceptHeaders
   module Negotiatable
     class Error < StandardError; end
@@ -7,6 +9,7 @@ module AcceptHeaders
 
     Q_PATTERN = /\A[ \t]*q[ \t]*=[ \t]*(?<q>.*?)[ \t]*\z/im
     QVALUE_PATTERN = /\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/
+    SUPPORTED_CONTROL_PATTERN = /[\x00-\x08\x0A-\x1F\x7F]/n
 
     def initialize(header)
       header = header.b if header && !header.valid_encoding?
@@ -14,8 +17,9 @@ module AcceptHeaders
     end
 
     def negotiate(supported)
-      candidates = [*supported].each_with_index.map do |support, support_index|
-        matches = list.each_with_index.select { |part, _| part.match(support) }
+      supported = validate_supported_values(supported)
+      candidates = supported.each_with_index.map do |support, support_index|
+        matches = list.each_with_index.select { |part, _| part.match(support.strip) }
         part, header_index = matches.max_by do |match, _|
           [match.specificity, match.q.zero? ? 1 : 0, match.q]
         end
@@ -37,6 +41,23 @@ module AcceptHeaders
     end
 
     private
+    def validate_supported_values(supported)
+      values = if supported.nil?
+        []
+      elsif supported.is_a?(Array)
+        supported
+      else
+        [supported]
+      end
+      values.each do |value|
+        unless value.is_a?(String) && value.valid_encoding? && value.encoding.ascii_compatible? &&
+            !SUPPORTED_CONTROL_PATTERN.match(value.b) && valid_supported_value?(value)
+          raise InvalidSupportedValue, "Invalid supported value: #{value.inspect}"
+        end
+      end
+      values
+    end
+
     def no_header
       raise NotImplementedError.new("#no_header is not implemented")
     end

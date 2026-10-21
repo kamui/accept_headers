@@ -10,7 +10,7 @@ module AcceptHeaders
       HEADER_PREFIX = 'Accept-Encoding:'
 
       def negotiate(supported)
-        supported = [*supported]
+        supported = validate_supported_values(supported)
         identity = Encoding.new('identity')
         explicit_identity = list.any? { |part| part.encoding == 'identity' }
         candidates = explicit_identity ? supported : supported.reject { |support| identity.match(support) }
@@ -22,6 +22,11 @@ module AcceptHeaders
       end
 
       private
+      def valid_supported_value?(value)
+        match = ENCODING_PATTERN.match(value.b)
+        match && match[:encoding] != '*'
+      end
+
       def parse(header)
         if header && header.sub(/\A#{HEADER_PREFIX}\s*/i, '').strip.empty?
           [Encoding.new('identity')]

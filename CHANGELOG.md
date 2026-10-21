@@ -1,4 +1,10 @@
-## 0.2.0 / Unreleased
+## HEAD / Unreleased
+
+  * Validate every supported offer before negotiation and raise `AcceptHeaders::InvalidSupportedValue` for invalid application configuration. Supported offers must be concrete values without quality weights; request parsing remains lenient.
+  * Add `MediaType#content_type` to serialize response media types with their parameters and without quality weights.
+  * Document the unreleased validation contract and use parameter-preserving response headers in the Rack example.
+
+## 0.2.0 / October 20, 2026
 
   * Replace Travis CI with GitHub Actions covering maintained Ruby 3.3, 3.4, and 4.0, and repair fresh test dependency setup.
   * Follow RFC 9110 negotiation rules and RFC 4647 Basic Filtering for languages.

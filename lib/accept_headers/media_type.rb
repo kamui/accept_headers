@@ -63,6 +63,10 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
+      content_type.concat(";q=#{qvalue}")
+    end
+
+    def content_type
       string = media_range
       if extensions.size > 0
         extensions.each do |key, value|
@@ -73,7 +77,7 @@ module AcceptHeaders
           string.concat(";#{key}=#{value}")
         end
       end
-      string.concat(";q=#{qvalue}")
+      string
     end
 
     def media_range

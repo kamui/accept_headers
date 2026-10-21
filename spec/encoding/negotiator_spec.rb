@@ -139,7 +139,7 @@ describe AcceptHeaders::Encoding::Negotiator do
     it "requires supported names to be complete HTTP tokens" do
       negotiator = subject.new('*')
       ['gzip\\bad', 'gzip{bad}', "gzip\nidentity", 'gzip,br'].each do |coding|
-        negotiator.negotiate(coding).must_be_nil
+        assert_raises(AcceptHeaders::InvalidSupportedValue) { negotiator.negotiate(coding) }
       end
     end
   end

@@ -21,6 +21,10 @@ module AcceptHeaders
       end
 
       private
+      def valid_supported_value?(value)
+        SUPPORTED_LANGUAGE_TAG_PATTERN.match(value.b.strip)
+      end
+
       def no_header
         [Language.new]
       end

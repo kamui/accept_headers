@@ -36,7 +36,7 @@ class ReadmeSpec < Minitest::Test
 
     response = request.get('/', 'HTTP_ACCEPT' => 'application/json', 'HTTP_ACCEPT_LANGUAGE' => 'en-GB')
     assert_equal 200, response.status
-    assert_equal 'application/json', response['content-type']
+    assert_equal 'application/json;version=2', response['content-type']
     assert_equal 'en-gb', response['content-language']
     assert_equal '{"message":"Hello"}', response.body
     assert_nil response['content-encoding']
@@ -44,6 +44,7 @@ class ReadmeSpec < Minitest::Test
 
     [
       { 'HTTP_ACCEPT' => 'application/xml' },
+      { 'HTTP_ACCEPT' => 'application/json;version=1' },
       { 'HTTP_ACCEPT_ENCODING' => 'identity;q=0' },
       { 'HTTP_ACCEPT_LANGUAGE' => 'fr' }
     ].each do |headers|

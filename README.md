@@ -4,7 +4,7 @@
 
 AcceptHeaders parses HTTP `Accept`, `Accept-Encoding`, and `Accept-Language` headers and negotiates a match against the representations your application supports. It has no runtime dependencies.
 
-This README describes version 0.2.0. See [Upgrading from 0.1.0 to 0.2.0](#upgrading-from-010-to-020) before updating an existing installation.
+This README describes the unreleased development version. Strict supported-value validation and `MediaType#content_type` are not available in the published 0.2.0 gem. See [Upgrading from 0.1.0 to 0.2.0](#upgrading-from-010-to-020) before updating an older installation.
 
 Negotiation follows [RFC 9110, sections 12.4 and 12.5](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4). Language matching uses [RFC 4647 Basic Filtering](https://www.rfc-editor.org/rfc/rfc4647.html#section-3.3.1). `Accept-Charset` is not supported because it is deprecated.
 
@@ -59,6 +59,12 @@ match.media_range
 # => "application/json"
 match.extensions
 # => { "version" => "2" }
+match.content_type
+# => "application/json;version=2"
+
+response_headers = { 'content-type' => match.content_type }
+response_headers['content-type']
+# => "application/json;version=2"
 
 versions.negotiate('application/json')
 # => nil
@@ -66,7 +72,7 @@ versions.negotiate('application/json')
 
 `#extensions` retains its historical name and contains media parameters. Under RFC 9110, parameters after `q` are also media parameters. Negotiation preserves the selected supported representation's parameters. It does not copy unsupported parameters from the request.
 
-Media type names and parameter names match without regard to case. Parameter values are case-sensitive except for `charset` values. Double-quoted values support commas, semicolons, and backslash escapes. `#to_s` quotes parameter values when needed and writes `q` last.
+Media type names and parameter names match without regard to case. Parameter values are case-sensitive except for `charset` values. Double-quoted values support commas, semicolons, and backslash escapes. `#content_type` includes these parameters without a quality weight, for use in a response's `Content-Type`. `#to_s` quotes parameter values when needed and writes `q` last.
 
 ### Encodings
 
@@ -118,7 +124,13 @@ The parsers skip malformed entries. An unterminated quoted string rejects the wh
 
 Invalid quality values recover to `0.001`, preserving this library's lenient parsing policy. Missing quality defaults to `1`. Valid quality syntax follows RFC 9110: values range from `0` to `1` with at most three decimal digits, including `0.`, `1.`, and `1.000`. The parameter name `q` is case-insensitive.
 
-`#to_s` produces a normalized preference header, including quality values. Use `#media_range`, `#encoding`, or `#language_tag` when you need the selected value alone. With `==`, objects compare equal only when their class, type-specific fields, and quality values agree. Sorting order does not imply equality.
+`#to_s` produces a normalized preference header, including quality values. Use `#content_type`, `#encoding`, or `#language_tag` for response headers. `#media_range` contains only the media type and subtype, without parameters. With `==`, objects compare equal only when their class, type-specific fields, and quality values agree. Sorting order does not imply equality.
+
+### Supported values (unreleased)
+
+`#negotiate` and `#accept?` validate every supported value before matching, even when the request header is empty or an earlier offer matches. Declare concrete media types, coding tokens, or language tags. Wildcards, lists within one string, header name prefixes, quality weights such as `;q=1`, malformed syntax, and non-string values raise `AcceptHeaders::InvalidSupportedValue`, a subclass of `ArgumentError`. Invalid Ruby string encodings and prohibited control characters also raise this error. Quoted media parameter values can contain literal `q=` text.
+
+This error indicates invalid application configuration. A valid offer that the client does not accept still returns `nil` from `#negotiate` and `false` from `#accept?`. Passing `nil` or an empty array declares no offers and returns those same results; an array containing `nil` is invalid. Request header parsing remains lenient as described above.
 
 ## Rack middleware
 
@@ -129,14 +141,14 @@ require 'accept_headers/middleware'
 
 use AcceptHeaders::Middleware
 run lambda { |env|
-	media = env['accept_headers.media_types'].negotiate('application/json')
+	media = env['accept_headers.media_types'].negotiate('application/json;version=2')
 	encoding = env['accept_headers.encodings'].negotiate('identity')
 	language = env['accept_headers.languages'].negotiate(['en-US', 'en-GB'])
 	vary = 'Accept, Accept-Encoding, Accept-Language'
 
 	if media && encoding && language
 		headers = {
-			'content-type' => media.media_range,
+			'content-type' => media.content_type,
 			'content-language' => language.language_tag,
 			'vary' => vary
 		}
@@ -147,7 +159,7 @@ run lambda { |env|
 }
 ```
 
-This example supports an unencoded JSON body in two English locales. It chooses to honor negotiation failures with `406`. Applications can choose a different fallback policy. When request headers influence response selection, set `Vary` so caches distinguish the variants. Rack 3 response header names must be lowercase.
+This example supports version 2 of an unencoded JSON body in two English locales. It chooses to honor negotiation failures with `406`. Applications can choose a different fallback policy. When request headers influence response selection, set `Vary` so caches distinguish the variants. Rack 3 response header names must be lowercase.
 
 ## Upgrading from 0.1.0 to 0.2.0
 
