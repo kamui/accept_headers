@@ -88,6 +88,49 @@ describe "supported representation validation" do
       assert_equal "\x80\xff".b, result.extensions['note']
     end
 
+    it "uses HTTP bytes for multibyte offers, quoted pairs, and response escaping" do
+      {
+        [0x95, 0x5c, 0x5c] => [0x95, 0x5c],
+        [0x95, 0x5c, 0x5c, 0x61] => [0x95, 0x5c, 0x61],
+        [0x95, 0x5c, 0x61] => [0x95, 0x61]
+      }.each do |bytes, expected|
+        wire = 'text/plain;note="'.b + bytes.pack('C*') + '"'
+        offer = wire.dup.force_encoding('Shift_JIS').freeze
+        original = offer.dup
+        [nil, '*/*', wire, offer].each do |header|
+          matcher = AcceptHeaders::MediaType::Negotiator.new(header)
+          assert matcher.accept?(offer)
+          result = matcher.negotiate(offer)
+          assert_equal expected, result.extensions['note'].bytes
+          binary_result = negotiator.negotiate(wire)
+          assert_equal binary_result.content_type.bytes, result.content_type.bytes
+          assert_equal binary_result.to_s.bytes, result.to_s.bytes
+          [result.content_type, result.to_s].each do |serialized|
+            reparsed = AcceptHeaders::MediaType::Negotiator.new(serialized.b).list.first
+            assert_equal expected, reparsed.extensions['note'].bytes
+          end
+        end
+        assert_equal original, offer
+        assert_equal original.encoding, offer.encoding
+      end
+    end
+
+    it "compares parameter bytes across encodings without transcoding or Unicode case folding" do
+      offer = 'text/plain;note="café";charset="K"'.freeze
+      [offer, offer.b].each do |header|
+        matcher = AcceptHeaders::MediaType::Negotiator.new(header)
+        [offer, offer.b].each do |supported|
+          result = matcher.negotiate(supported)
+          assert_equal offer.bytes, result.content_type.bytes
+        end
+        refute matcher.accept?('text/plain;note="café";charset=k')
+        refute matcher.accept?(offer.encode('Windows-1252', undef: :replace))
+      end
+      result = negotiator.negotiate(offer)
+      assert_equal Encoding::UTF_8, result.extensions['note'].encoding
+      assert_equal Encoding::UTF_8, result.content_type.encoding
+    end
+
     it "accepts empty parameter segments and empty quoted values" do
       result = negotiator.negotiate('text/plain; ; note="";;')
       assert_equal({'note' => ''}, result.extensions)

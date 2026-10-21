@@ -63,7 +63,7 @@ module AcceptHeaders
           raise ParseError unless param
           value = param[:value].force_encoding(part.encoding)
           if value.start_with?('"')
-            value = value[1...-1].gsub(/\\(.)/m, '\\1')
+            value = value.b[1...-1].gsub(/\\(.)/m, '\\1').force_encoding(part.encoding)
           end
           extensions[param[:attribute].downcase] = value
         end

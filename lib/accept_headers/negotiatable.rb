@@ -89,10 +89,10 @@ module AcceptHeaders
 
     def split_quoted(value, delimiter)
       parts = []
-      part = +""
+      part = +"".b
       quoted = false
       escaped = false
-      value.each_char do |character|
+      value.b.each_char do |character|
         if escaped
           escaped = false
         elsif quoted && character == "\\"
@@ -101,13 +101,14 @@ module AcceptHeaders
           quoted = !quoted
         elsif !quoted && character == delimiter
           parts << part
-          part = +""
+          part = +"".b
           next
         end
         part << character
       end
       raise ParseError if quoted || escaped
       parts << part
+      parts.map { |segment| segment.force_encoding(value.encoding) }
     end
 
     def parse_q(header)

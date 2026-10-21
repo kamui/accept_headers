@@ -71,8 +71,8 @@ module AcceptHeaders
       if extensions.size > 0
         extensions.each do |key, value|
           value = value.to_s
-          unless /\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/.match(value)
-            value = '"' + value.gsub(/["\\]/) { |character| "\\#{character}" } + '"'
+          unless /\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/.match(value.b)
+            value = '"' + value.b.gsub(/["\\]/) { |character| "\\#{character}" }.force_encoding(value.encoding) + '"'
           end
           string.concat(";#{key}=#{value}")
         end
@@ -99,9 +99,9 @@ module AcceptHeaders
       extensions.all? do |name, value|
         supported_value = candidate.extensions[name]
         if name == 'charset'
-          supported_value && value.casecmp?(supported_value)
+          supported_value && value.b.casecmp?(supported_value.b)
         else
-          value == supported_value
+          supported_value && value.b == supported_value.b
         end
       end
     end

@@ -2,6 +2,7 @@
 
   * Validate every supported offer before negotiation and raise `AcceptHeaders::InvalidSupportedValue` for invalid application configuration. Supported offers must be concrete values without quality weights; request parsing remains lenient.
   * Add `MediaType#content_type` to serialize response media types with their parameters and without quality weights.
+  * Preserve HTTP parameter bytes through parsing, matching, and response escaping, including ASCII-compatible multibyte supported strings.
   * Document the unreleased validation contract and use parameter-preserving response headers in the Rack example.
 
 ## 0.2.0 / October 20, 2026
