@@ -63,17 +63,21 @@ module AcceptHeaders
 
     def to_s
       qvalue = (q == 0 || q == 1) ? q.to_i : q
+      content_type.concat(";q=#{qvalue}")
+    end
+
+    def content_type
       string = media_range
       if extensions.size > 0
         extensions.each do |key, value|
           value = value.to_s
-          unless /\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/.match(value)
-            value = '"' + value.gsub(/["\\]/) { |character| "\\#{character}" } + '"'
+          unless /\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/.match(value.b)
+            value = '"' + value.b.gsub(/["\\]/) { |character| "\\#{character}" }.force_encoding(value.encoding) + '"'
           end
           string.concat(";#{key}=#{value}")
         end
       end
-      string.concat(";q=#{qvalue}")
+      string
     end
 
     def media_range
@@ -94,6 +98,10 @@ module AcceptHeaders
 
       extensions.all? do |name, value|
         supported_value = candidate.extensions[name]
+        if value.is_a?(String) && supported_value.is_a?(String)
+          value = value.b
+          supported_value = supported_value.b
+        end
         if name == 'charset'
           supported_value && value.casecmp?(supported_value)
         else

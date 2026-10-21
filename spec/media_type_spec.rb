@@ -104,6 +104,84 @@ describe AcceptHeaders::MediaType do
     subject.new('text', 'html', extensions: { 'level' => '1' }).media_range.must_equal "text/html"
   end
 
+  describe "#content_type" do
+    it "outputs type, subtype, and parameters without the quality weight" do
+      media_type = subject.new('text', 'html', q: 0.9, extensions: { 'level' => '1' })
+
+      media_type.content_type.must_equal 'text/html;level=1'
+      media_type.to_s.must_equal 'text/html;level=1;q=0.9'
+      media_type.media_range.must_equal 'text/html'
+    end
+
+    it "does not add a quality parameter when there are no media parameters" do
+      subject.new('application', 'json').content_type.must_equal 'application/json'
+    end
+
+    it "uses the same parameter quoting as the Accept representation" do
+      {
+        'a,b' => '"a,b"',
+        'a;b' => '"a;b"',
+        'a"b' => '"a\\"b"',
+        'a\\b' => '"a\\\\b"',
+        '' => '""',
+        "caf\u00e9" => "\"caf\u00e9\"",
+        "\x80\xFF".b => "\"\x80\xFF\"".b
+      }.each do |parameter, encoded|
+        media_type = subject.new('text', 'plain', extensions: { 'note' => parameter })
+
+        media_type.content_type.must_equal "text/plain;note=#{encoded}"
+        media_type.to_s.must_equal "text/plain;note=#{encoded};q=1"
+      end
+    end
+
+    it "does not mutate the media type or parameter values" do
+      parameter = 'a,b;c"d\\e'.freeze
+      extensions = { 'note' => parameter }.freeze
+      media_type = subject.new('text', 'plain', q: 0.8, extensions: extensions)
+      original = media_type.to_h
+      result = media_type.content_type
+      result.replace('application/json')
+
+      media_type.to_h.must_equal original
+      media_type.extensions.must_equal extensions
+      media_type.content_type.must_equal 'text/plain;note="a,b;c\\"d\\\\e"'
+      media_type.to_s.must_equal 'text/plain;note="a,b;c\\"d\\\\e";q=0.8'
+    end
+  end
+
+  describe "#match" do
+    it "preserves raw comparison for hand-built non-String parameter values" do
+      [2, :public, nil].each do |value|
+        range = subject.new('application', 'json', extensions: { 'version' => value })
+        excluded = subject.new('application', 'json', q: 0, extensions: { 'version' => value })
+
+        ['application/json;version=2', 'application/json;version=public'].each do |candidate|
+          range.match(candidate).must_equal false
+          range.accept?(candidate).must_equal false
+          excluded.reject?(candidate).must_equal false
+        end
+
+        expected = value.nil?
+        range.match('application/json').must_equal expected
+        range.accept?('application/json').must_equal expected
+        excluded.reject?('application/json').must_equal expected
+      end
+    end
+
+    it "folds only ASCII case in charset values" do
+      { 'UTF-8' => 'utf-8', 'É' => 'é', 'K' => 'k' }.each do |value, candidate|
+        range = subject.new('text', 'plain', extensions: { 'charset' => value })
+        excluded = subject.new('text', 'plain', q: 0, extensions: { 'charset' => value })
+        header = "text/plain;charset=\"#{candidate}\""
+        expected = value == 'UTF-8'
+
+        range.match(header).must_equal expected
+        range.accept?(header).must_equal expected
+        excluded.reject?(header).must_equal expected
+      end
+    end
+  end
+
   describe "#accept?" do
     it "matches type and subtype without case sensitivity" do
       subject.new('text', 'html').accept?('TEXT/HTML').must_equal true

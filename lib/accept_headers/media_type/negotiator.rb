@@ -17,6 +17,20 @@ module AcceptHeaders
       end
 
       private
+      def valid_supported_value?(value)
+        media_range_string, *parameters = split_quoted(value.b, ';')
+        media_range = MEDIA_TYPE_PATTERN.match(media_range_string)
+        return false unless media_range && media_range[:subtype]
+        return false if media_range[:type] == '*' || media_range[:subtype] == '*'
+        parameters.all? do |parameter|
+          next true if parameter.strip.empty?
+          match = PARAMS_PATTERN.match(parameter)
+          match && match[:attribute].downcase != 'q'
+        end
+      rescue ParseError
+        false
+      end
+
       def no_header
         [MediaType.new]
       end
@@ -49,7 +63,7 @@ module AcceptHeaders
           raise ParseError unless param
           value = param[:value].force_encoding(part.encoding)
           if value.start_with?('"')
-            value = value[1...-1].gsub(/\\(.)/m, '\\1')
+            value = value.b[1...-1].gsub(/\\(.)/m, '\\1').force_encoding(part.encoding)
           end
           extensions[param[:attribute].downcase] = value
         end

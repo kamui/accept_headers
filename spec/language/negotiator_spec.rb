@@ -95,9 +95,10 @@ describe AcceptHeaders::Language::Negotiator do
     end
 
     it "requires concrete supported language tags" do
-      ['*', 'en-*', 'en_US', 'en;q=1', nil].each do |support|
-        subject.new('*').accept?(support).must_equal false
+      ['*', 'en-*', 'en_US', 'en;q=1'].each do |support|
+        assert_raises(AcceptHeaders::InvalidSupportedValue) { subject.new('*').accept?(support) }
       end
+      subject.new('*').accept?(nil).must_equal false
     end
 
     it "returns nil when no supported language matches" do
