@@ -149,6 +149,39 @@ describe AcceptHeaders::MediaType do
     end
   end
 
+  describe "#match" do
+    it "preserves raw comparison for hand-built non-String parameter values" do
+      [2, :public, nil].each do |value|
+        range = subject.new('application', 'json', extensions: { 'version' => value })
+        excluded = subject.new('application', 'json', q: 0, extensions: { 'version' => value })
+
+        ['application/json;version=2', 'application/json;version=public'].each do |candidate|
+          range.match(candidate).must_equal false
+          range.accept?(candidate).must_equal false
+          excluded.reject?(candidate).must_equal false
+        end
+
+        expected = value.nil?
+        range.match('application/json').must_equal expected
+        range.accept?('application/json').must_equal expected
+        excluded.reject?('application/json').must_equal expected
+      end
+    end
+
+    it "folds only ASCII case in charset values" do
+      { 'UTF-8' => 'utf-8', 'É' => 'é', 'K' => 'k' }.each do |value, candidate|
+        range = subject.new('text', 'plain', extensions: { 'charset' => value })
+        excluded = subject.new('text', 'plain', q: 0, extensions: { 'charset' => value })
+        header = "text/plain;charset=\"#{candidate}\""
+        expected = value == 'UTF-8'
+
+        range.match(header).must_equal expected
+        range.accept?(header).must_equal expected
+        excluded.reject?(header).must_equal expected
+      end
+    end
+  end
+
   describe "#accept?" do
     it "matches type and subtype without case sensitivity" do
       subject.new('text', 'html').accept?('TEXT/HTML').must_equal true

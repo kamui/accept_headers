@@ -120,7 +120,7 @@ Use `en` to match English variants. Extended wildcard ranges such as `en-*` are 
 
 A `nil` header represents an absent field and allows any supported value. A present empty `Accept` or `Accept-Language` contains no acceptable entries. Empty `Accept-Encoding` allows only identity.
 
-The parsers skip malformed entries. An unterminated quoted string rejects the whole list because its comma boundaries are ambiguous. Apostrophes are token characters, not string delimiters. Headers with an invalid Ruby string encoding are read as raw HTTP bytes. Quoted non-ASCII values are preserved.
+The parsers skip malformed entries. An unterminated quoted string rejects the whole list because its comma boundaries are ambiguous. Apostrophes are token characters, not string delimiters. Headers with an invalid Ruby string encoding are read as raw HTTP bytes. Quoted non-ASCII values are preserved. For headers in ASCII-compatible Ruby encodings, media parameter parsing treats a backslash byte as a quoted-pair escape even when Ruby considers it part of a multibyte character. Headers and supported strings follow the same HTTP byte syntax, without transcoding.
 
 Invalid quality values recover to `0.001`, preserving this library's lenient parsing policy. Missing quality defaults to `1`. Valid quality syntax follows RFC 9110: values range from `0` to `1` with at most three decimal digits, including `0.`, `1.`, and `1.000`. The parameter name `q` is case-insensitive.
 

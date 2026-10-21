@@ -53,6 +53,63 @@ class MalformedHeaderSpec < Minitest::Test
     assert_equal item.to_h, AcceptHeaders::MediaType::Negotiator.new(item.to_s).list.first.to_h
   end
 
+  def test_multibyte_headers_decode_quoted_pairs_as_http_bytes
+    {
+      [0x95, 0x5c, 0x5c] => [0x95, 0x5c],
+      [0x95, 0x5c, 0x5c, 0x61] => [0x95, 0x5c, 0x61],
+      [0x95, 0x5c, 0x61] => [0x95, 0x61],
+      [0x95, 0x5c, 0x22, 0x61] => [0x95, 0x22, 0x61]
+    }.each do |bytes, expected|
+      wire = 'text/plain;note="'.b + bytes.pack('C*') + '";q=0.8,application/json;q=0.5'
+      header = wire.dup.force_encoding('Shift_JIS').freeze
+      assert header.valid_encoding?
+      binary = AcceptHeaders::MediaType::Negotiator.new(wire)
+      tagged = AcceptHeaders::MediaType::Negotiator.new(header)
+
+      assert_equal binary.list.map(&:media_range), tagged.list.map(&:media_range)
+      assert_equal binary.list.first.extensions['note'].bytes, tagged.list.first.extensions['note'].bytes
+      assert_equal expected, tagged.list.first.extensions['note'].bytes
+      assert_equal [0.8, 0.5], tagged.list.map(&:q)
+      [wire.split(';q=').first, 'text/plain;note="other"', 'application/json'].each do |offer|
+        assert_equal binary.accept?(offer), tagged.accept?(offer)
+        assert_equal [binary.negotiate(offer)&.content_type&.bytes], [tagged.negotiate(offer)&.content_type&.bytes]
+      end
+      assert_equal wire.bytes, header.bytes
+      assert_equal Encoding::Shift_JIS, header.encoding
+    end
+  end
+
+  def test_multibyte_headers_reject_unterminated_http_quoted_pairs
+    ['"', '",application/json'].each do |suffix|
+      wire = 'text/plain;note="'.b + [0x95, 0x5c].pack('C*') + suffix
+      header = wire.dup.force_encoding('Shift_JIS').freeze
+      assert header.valid_encoding?
+
+      [wire, header].each do |input|
+        matcher = AcceptHeaders::MediaType::Negotiator.new(input)
+        assert_empty matcher.list
+        refute matcher.accept?('application/json')
+        assert_nil matcher.negotiate('text/plain')
+      end
+      assert_equal wire.bytes, header.bytes
+    end
+  end
+
+  def test_utf8_header_quoted_pairs_preserve_values_and_encoding
+    header = 'text/plain;note="日本語; café\\"x\\\\y";q=0.8'.freeze
+    tagged = AcceptHeaders::MediaType::Negotiator.new(header)
+    binary = AcceptHeaders::MediaType::Negotiator.new(header.b)
+    item = tagged.list.first
+
+    assert_equal '日本語; café"x\\y', item.extensions['note']
+    assert_equal Encoding::UTF_8, item.extensions['note'].encoding
+    assert_equal 0.8, item.q
+    assert_equal binary.list.first.extensions['note'].bytes, item.extensions['note'].bytes
+    assert_equal item.to_h, AcceptHeaders::MediaType::Negotiator.new(item.to_s).list.first.to_h
+    assert_equal item.content_type, tagged.negotiate(item.content_type).content_type
+    assert_equal Encoding::UTF_8, header.encoding
+  end
+
   def test_invalid_media_ranges_do_not_match_partial_lines_or_non_token_characters
     ['*/json', 'text/html/extra', 'text/ht{ml}', 'text/ht\\ml', "text/html\nnonsense", 'text /html'].each do |range|
       assert_empty AcceptHeaders::MediaType::Negotiator.new(range).list, range

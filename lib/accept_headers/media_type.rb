@@ -98,10 +98,14 @@ module AcceptHeaders
 
       extensions.all? do |name, value|
         supported_value = candidate.extensions[name]
+        if value.is_a?(String) && supported_value.is_a?(String)
+          value = value.b
+          supported_value = supported_value.b
+        end
         if name == 'charset'
-          supported_value && value.b.casecmp?(supported_value.b)
+          supported_value && value.casecmp?(supported_value)
         else
-          supported_value && value.b == supported_value.b
+          value == supported_value
         end
       end
     end
