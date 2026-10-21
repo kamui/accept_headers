@@ -128,7 +128,7 @@ Invalid quality values recover to `0.001`, preserving this library's lenient par
 
 ### Supported values (unreleased)
 
-Supported strings must use an ASCII-compatible Ruby encoding. Media parameter parsing, matching, and response escaping interpret them as HTTP bytes, without transcoding. A backslash byte introduces a quoted pair even when Ruby considers it part of a multibyte character. Parameter values compare byte for byte, except that `charset` ignores ASCII letter case. UTF-8 parameter values retain their encoding; frozen offers are not modified.
+Supported strings must use an ASCII-compatible Ruby encoding. Media parameter parsing, matching, and response escaping interpret them as HTTP bytes, without transcoding. A backslash byte introduces a quoted pair even when Ruby considers it part of a multibyte character. Parameter values compare byte for byte regardless of Ruby encoding labels, except that `charset` ignores ASCII letter case. UTF-8 parameter values retain their encoding; frozen offers are not modified.
 
 `#negotiate` and `#accept?` validate every supported value before matching, even when the request header is empty or an earlier offer matches. Declare concrete media types, coding tokens, or language tags. Wildcards, lists within one string, header name prefixes, quality weights such as `;q=1`, malformed syntax, and non-string values raise `AcceptHeaders::InvalidSupportedValue`, a subclass of `ArgumentError`. Invalid Ruby string encodings and prohibited control characters also raise this error. Quoted media parameter values can contain literal `q=` text.
 

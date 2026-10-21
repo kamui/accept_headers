@@ -117,9 +117,10 @@ describe "supported representation validation" do
 
     it "compares parameter bytes across encodings without transcoding or Unicode case folding" do
       offer = 'text/plain;note="café";charset="K"'.freeze
-      [offer, offer.b].each do |header|
+      labelled_offer = offer.dup.force_encoding('ISO-8859-1').freeze
+      [offer, offer.b, labelled_offer].each do |header|
         matcher = AcceptHeaders::MediaType::Negotiator.new(header)
-        [offer, offer.b].each do |supported|
+        [offer, offer.b, labelled_offer].each do |supported|
           result = matcher.negotiate(supported)
           assert_equal offer.bytes, result.content_type.bytes
         end
@@ -129,6 +130,15 @@ describe "supported representation validation" do
       result = negotiator.negotiate(offer)
       assert_equal Encoding::UTF_8, result.extensions['note'].encoding
       assert_equal Encoding::UTF_8, result.content_type.encoding
+
+      utf8_offer = 'text/plain;note="café"'.freeze
+      latin1_offer = utf8_offer.encode('ISO-8859-1').freeze
+      [utf8_offer, latin1_offer].each do |header|
+        matcher = AcceptHeaders::MediaType::Negotiator.new(header)
+        other_offer = header.equal?(utf8_offer) ? latin1_offer : utf8_offer
+        assert_nil matcher.negotiate(other_offer)
+        refute matcher.accept?(other_offer)
+      end
     end
 
     it "accepts empty parameter segments and empty quoted values" do
