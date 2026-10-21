@@ -4,7 +4,7 @@
 
 AcceptHeaders parses HTTP `Accept`, `Accept-Encoding`, and `Accept-Language` headers and negotiates a match against the representations your application supports. It has no runtime dependencies.
 
-This README describes the unreleased development version. Strict supported-value validation and `MediaType#content_type` are not available in the published 0.2.0 gem. See [Upgrading from 0.1.0 to 0.2.0](#upgrading-from-010-to-020) before updating an older installation.
+This README describes version 0.3.0. See [Upgrading from 0.2.0 to 0.3.0](#upgrading-from-020-to-030) before updating. For older installations, also see [Upgrading from 0.1.0 to 0.2.0](#upgrading-from-010-to-020).
 
 Negotiation follows [RFC 9110, sections 12.4 and 12.5](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4). Language matching uses [RFC 4647 Basic Filtering](https://www.rfc-editor.org/rfc/rfc4647.html#section-3.3.1). `Accept-Charset` is not supported because it is deprecated.
 
@@ -15,7 +15,7 @@ CI covers the maintained Ruby series: 3.3, 3.4, and 4.0. Older Ruby versions rem
 Add the gem to your Gemfile and run `bundle install`:
 
 ```ruby
-gem 'accept_headers', '~> 0.2.0'
+gem 'accept_headers', '~> 0.3.0'
 ```
 
 ## Usage
@@ -126,7 +126,7 @@ Invalid quality values recover to `0.001`, preserving this library's lenient par
 
 `#to_s` produces a normalized preference header, including quality values. Use `#content_type`, `#encoding`, or `#language_tag` for response headers. `#media_range` contains only the media type and subtype, without parameters. With `==`, objects compare equal only when their class, type-specific fields, and quality values agree. Sorting order does not imply equality.
 
-### Supported values (unreleased)
+### Supported values
 
 Supported strings must use an ASCII-compatible Ruby encoding. Media parameter parsing, matching, and response escaping interpret them as HTTP bytes, without transcoding. A backslash byte introduces a quoted pair even when Ruby considers it part of a multibyte character. Parameter values compare byte for byte regardless of Ruby encoding labels, except that `charset` ignores ASCII letter case. UTF-8 parameter values retain their encoding; frozen offers are not modified.
 
@@ -162,6 +162,15 @@ run lambda { |env|
 ```
 
 This example supports version 2 of an unencoded JSON body in two English locales. It chooses to honor negotiation failures with `406`. Applications can choose a different fallback policy. When request headers influence response selection, set `Vary` so caches distinguish the variants. Rack 3 response header names must be lowercase.
+
+## Upgrading from 0.2.0 to 0.3.0
+
+Version 0.3.0 validates supported offers before negotiation and adds response serialization:
+
+- Declare concrete supported values without wildcards, header prefixes, lists within one string, or quality weights. Every invalid offer raises `AcceptHeaders::InvalidSupportedValue`, even if an earlier offer matches. Request parsing remains lenient.
+- Surrounding spaces and tabs are trimmed from supported offers. Language offers such as `" en "` now match where 0.2.0 skipped them.
+- Media parameters follow HTTP byte syntax, including quoted-pair escapes inside Ruby multibyte characters. Identical parameter bytes match across Ruby encoding labels without transcoding. `charset` case folding applies only to ASCII letters.
+- Use `MediaType#content_type` for response headers to retain parameters without a quality weight. `#to_s` still includes quality values, and `#media_range` still omits parameters.
 
 ## Upgrading from 0.1.0 to 0.2.0
 
